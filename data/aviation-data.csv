@@ -1,3 +1,11 @@
-Phase,Approach,Climb,Cruise,Descent,Go-Around,Landing,Maneuvering,Standing,Takeoff,Taxi
-Fatal,11,2,7,5,2,1,3,1,29,0
-Non-Fatal,24,5,22,9,8,151,13,2,78,9
+Phase,Fatal,Non-Fatal
+Approach,11,24
+Climb,2,5
+Cruise,7,22
+Descent,5,9
+Go-Around,2,8
+Landing,1,151
+Maneuvering,3,13
+Standing,1,2
+Takeoff,29,78
+Taxi,0,9
