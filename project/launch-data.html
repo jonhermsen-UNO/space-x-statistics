@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.3.1/dist/cosmo/bootstrap.min.css" crossorigin="anonymous">
+
+	<title>SpaceX Launch Data</title>
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<div class="container">
+			<h1 class="navbar-brand my-0">SpaceX Launch Data</h1>
+		</div>
+	</nav>
+
+	<main id="app-main" class="container-fluid my-3">
+		<table class="table table-sm table-striped">
+			<caption>Viewing {{ launches.length }} results</caption>
+			<thead>
+				<tr>
+					<th class="sticky-top table-dark" v-for="col in Object.keys(launches[0])">{{ _.startCase(col.substring(1)) }}</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="row in launches">
+					<td v-for="col in row">{{ col }}</td>
+				</tr>
+			</tbody>
+		</table>
+	</main>
+
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.15.0/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+	<script>
+		(function () {
+			"use strict";
+
+			jQuery.getJSON("https://api.spacexdata.com/v3/launches", (data) => {
+				let launches = [];
+
+				_.forEach(data, (launch, index) => {
+					if (!launch ||
+						// omit partial results
+						!launch.timeline ||
+						// omit failed launches
+						!launch.launch_success ||
+						// omit future launches
+						launch.upcoming ||
+						// omit launches which did not carry a payload
+						!launch.rocket.second_stage.payloads.length) {
+						return;
+					}
+
+					_.forEach(launch.rocket.second_stage.payloads, (currentPayload) => {
+						// omit non-orbiting results
+						if (!currentPayload.orbit_params.period_min ||
+							!currentPayload.orbit_params.lifespan_years ||
+							!launch.timeline.payload_deploy ||
+							// omit partial results
+							_.includes(currentPayload, null)) {
+							return;
+						}
+
+						// compile the launch record
+						let launchData = {},
+							dateFormat = "MM/DD/YYYY HH:mm:SS A";
+
+						launchData.uFlightNo = launch.flight_number;
+						launchData.uMissionName = launch.mission_name;
+						//launchData.uMissionDetails = launch.details;
+						launchData.uRocketName = launch.rocket.rocket_name
+						launchData.uRocketType = launch.rocket.rocket_type
+						launchData.uLaunchLocation = launch.launch_site.site_name;
+						launchData.uLaunchTime = moment.unix(launch.launch_date_unix + launch.timeline.liftoff).format(dateFormat);
+						launchData.uPayloadName = currentPayload.payload_id;
+						launchData.uPayloadType = currentPayload.payload_type;
+						launchData.uPayloadCountry = currentPayload.nationality;
+						launchData.uPayloadMassKG = currentPayload.payload_mass_kg;
+						launchData.uPayloadDeploy = launch.timeline.payload_deploy;
+						launchData.uPayloadDeployTime = moment.unix(launch.launch_date_unix + launch.timeline.payload_deploy).format(dateFormat);
+						launchData.uOrbit = currentPayload.orbit;
+						launchData.uOrbitLocation = currentPayload.orbit_params.regime;
+						//launchData.uOrbitLongitude = currentPayload.orbit_params.longitude;
+						launchData.uOrbitSemiMajorAxis = currentPayload.orbit_params.semi_major_axis_km;
+						launchData.uOrbitEccentricity = currentPayload.orbit_params.eccentricity;
+						launchData.uOrbitPeriapsis = currentPayload.orbit_params.periapsis_km;
+						launchData.uOrbitApoapsis = currentPayload.orbit_params.apoapsis_km;
+						launchData.uOrbitOrbitTime = currentPayload.orbit_params.period_min;
+						launchData.uOrbitLifespan = currentPayload.orbit_params.lifespan_years;
+
+						launches.push(launchData);
+					});
+				});
+
+				let App = new Vue({
+					el: "#app-main",
+					data: { launches: launches }
+				});
+			});
+		})();
+	</script>
+</body>
+
+</html>
