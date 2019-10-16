@@ -68,3 +68,4 @@
 * [Cornell.edu](https://www.classe.cornell.edu/~seb/celestia/orbital-parameters.html)
 * [MECO and BECO discussion](https://www.reddit.com/r/spacex/comments/bcdss4/some_meco_and_beco_speeds/)
 * [Boostback discussion](https://www.reddit.com/r/spaceflight/comments/4tp3ak/respacex_how_does_the_boostback_maneuver_work/)
+* [AMSAT Definitions](https://www.amsat.org/keplerian-elements-tutorial/)
