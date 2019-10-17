@@ -55,17 +55,12 @@
 							<li class="list-group-item">
 								Launched: {{ moment.unix(launch.launch_date_unix).format(dateFormat) }}
 							</li>
-							<li v-if="!launch.launch_success" class="list-group-item">
-								Failure: {{ moment.unix(launch.launch_date_unix + launch.launch_failure_details.time).format(dateFormat) }}
-							</li>
-							<li class="list-group-item">{{ launch.timeline }}</li>
+							<li v-if="!launch.launch_success" class="list-group-item"
+								style="white-space:pre-wrap;">{{ launch.launch_failure_details }}</li>
+							<li v-else class="list-group-item"
+								style="white-space:pre-wrap;">{{ launch.timeline }}</li>
 							<li v-for="(payload, title) in launch.rocket.second_stage.payloads"
-								class="list-group-item" style="white-space:pre-wrap;">
-								{{ payload.orbit_params }}
-							</li>
-							<li v-for="(event, title) in launch.timeline" class="list-group-item">
-								{{ _.startCase(title) }}: {{ event }} seconds
-							</li>
+								class="list-group-item" style="white-space:pre-wrap;">{{ payload.orbit_params }}</li>
 						</ul>
 						<div class="card-footer">{{ launch.details }}</div>
 					</div>
