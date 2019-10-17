@@ -60,7 +60,14 @@
 							<li v-else class="list-group-item"
 								style="white-space:pre-wrap;">{{ launch.timeline }}</li>
 							<li v-for="(payload, title) in launch.rocket.second_stage.payloads"
-								class="list-group-item" style="white-space:pre-wrap;">{{ payload.orbit_params }}</li>
+								class="list-group-item">
+								Type: {{ payload.payload_type }}<br>
+								Nation: {{ payload.nationality }}<br>
+								Custmer: {{ payload.customers }}<br>
+								Mass: {{ payload.payload_mass_kg }} kg<br>
+								Orbit: {{ payload.orbit }}<br>
+								<div style="white-space:pre-wrap;">{{ payload.orbit_params }}</div>
+							</li>
 						</ul>
 						<div class="card-footer">{{ launch.details }}</div>
 					</div>
