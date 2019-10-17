@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.3/dist/cosmo/bootstrap.min.css" crossorigin="anonymous">
+
+	<title>SpaceX Launch Data</title>
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<div class="container">
+			<h1 class="navbar-brand my-0">SpaceX Launch Data</h1>
+		</div>
+	</nav>
+
+	<main id="app-main" class="container my-3">
+		<p>TODO:</p>
+		<ul>
+			<li>Begin exploring <a href="./questions.md">questions</a></li>
+			<li>Descriptive statistics</li>
+			<li>Confidence intervals</li>
+			<li>Probability statements</li>
+			<li>About distributions</li>
+		</ul>
+
+		<span class="badge badge-primary">{{ launches.length }} Launches</span>
+		<span class="badge badge-success">{{ _.countBy(launches, "launch_success").true }} Successes</span>
+		<span class="badge badge-danger">{{ _.countBy(launches, "launch_success").false }} Fails</span>
+		<div class="row">
+			<div class="col-6">
+				<div v-for="launch in launches" class="col-12 my-3">
+					<div class="card">
+						<div class="card-header">
+							<div class="row align-items-center">
+								<div class="col-2 text-center my-1 embed-responsive embed-responsive-21by9">
+									<div class="embed-responsive-item text-center">
+										<img :src="launch.links.mission_patch_small" class="h-100">
+									</div>
+								</div>
+								<div class="col-8 h4 m-0">
+									[{{ launch.flight_number }}]
+									{{ launch.mission_name }}
+								</div>
+								<div class="col-2 text-right">
+									<span v-bind:class="(launch.launch_success ? 'badge-success' : 'badge-danger')"
+									class="badge">{{ launch.launch_success ? "Success" : "Fail" }}</span>
+								</div>
+							</div>
+						</div>
+						<ul class="list-group list-group-flush">
+							<li class="list-group-item">
+								Launched: {{ moment.unix(launch.launch_date_unix).format(dateFormat) }}
+							</li>
+							<li v-if="!launch.launch_success" class="list-group-item">
+								Failure: {{ moment.unix(launch.launch_date_unix + launch.launch_failure_details.time).format(dateFormat) }}
+							</li>
+							<li class="list-group-item">{{ launch.timeline }}</li>
+							<li v-for="(payload, title) in launch.rocket.second_stage.payloads"
+								class="list-group-item" style="white-space:pre-wrap;">
+								{{ payload.orbit_params }}
+							</li>
+							<li v-for="(event, title) in launch.timeline" class="list-group-item">
+								{{ _.startCase(title) }}: {{ event }} seconds
+							</li>
+						</ul>
+						<div class="card-footer">{{ launch.details }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="text-monospace col-6" style="white-space:pre-wrap;">{{ launches }}</div>
+		</div>
+	</main>
+
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.6/dist/vue.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/lodash@4.17/lodash.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/moment@2.24/moment.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jquery@3.4/dist/jquery.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.15/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+	<script>
+		(function () {
+			"use strict";
+
+			jQuery.getJSON("https://api.spacexdata.com/v3/launches", (data) => {
+				console.log(data);
+
+				// only process launches which have occurred
+				data = _.filter(data, { upcoming: false });
+
+				let App = new Vue({
+					el: "#app-main",
+					data: { 
+						launches: data,
+						dateFormat: "MM/DD/YYYY hh:mm:SS A"
+					}
+				});
+			});
+		})();
+	</script>
+</body>
+
+</html>
