@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.3/dist/cosmo/bootstrap.min.css" crossorigin="anonymous">
+
+	<title>SpaceX Launch Data</title>
+</head>
+
+<body>
+	<nav class="position-sticky navbar navbar-expand-lg navbar-dark bg-dark" style="top:0;z-index:1;">
+		<div class="container">
+			<h1 class="navbar-brand my-0">SpaceX Launch Data</h1>
+			<form class="form-inline my-2 my-lg-0">
+				<button type="button" class="btn btn-primary"
+					data-toggle="modal" data-target="#dataModal">
+					View raw launch data
+				</button>
+			</form>
+		</div>
+	</nav>
+
+	<main id="app-main" class="container-fluid my-3">
+		<div id="dataModal" class="modal">
+			<div class="modal-dialog modal-xl">
+				<div class="modal-content">
+					<div class="modal-header">
+						<div class="modal-title h5">Raw launch data</div>
+						<button type="button" class="close" data-dismiss="modal">
+							<span>&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<pre class="bg-dark text-light"
+							style="max-height:calc(100vh - 12rem)">{{ launches }}</pre>
+						<a href="https://docs.spacexdata.com/?version=latest#bc65ba60-decf-4289-bb04-4ca9df01b9c1">
+							View API documentation
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="text-center">
+			<span class="badge badge-success">{{ _.countBy(launches, "launch_success").true }} Successes</span>
+			<span class="badge badge-danger">{{ _.countBy(launches, "launch_success").false }} Fails</span>
+			<span class="badge badge-primary">{{ launches.length }} Launches / {{ population.length }} Planned</span>
+			<span class="badge badge-primary">{{ payloads.length }} Payloads</span>
+		</div>
+		<div class="row" v-if="false">
+			<div v-for="payload in payloads" class="col-12 col-lg-4 my-3">
+				<div class="card">
+					<div class="card-header">{{ payload.payload_id }}</div>
+					<div class="card-body">
+						<pre>{{ payload }}</pre>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div v-for="launch in launches" class="col-12 col-lg-4 my-3">
+				<div class="card">
+					<div class="card-header">
+						<div class="row align-items-center">
+							<div class="col-2 text-center my-1 embed-responsive embed-responsive-21by9">
+								<div class="embed-responsive-item text-center">
+									<img :src="launch.links.mission_patch_small" class="h-100">
+								</div>
+							</div>
+							<div class="col-8 h4 m-0">
+								[{{ launch.flight_number }}]
+								{{ launch.mission_name }}
+							</div>
+							<div class="col-2 text-right">
+								<span v-bind:class="(launch.launch_success ? 'badge-success' : 'badge-danger')"
+								class="badge">{{ launch.launch_success ? "Success" : "Fail" }}</span>
+							</div>
+						</div>
+					</div>
+					<ul class="list-group list-group-flush">
+						<li class="list-group-item">
+							Launched: {{ moment.unix(launch.launch_date_unix).format(dateFormat) }}
+						</li>
+						<li v-if="!launch.launch_success" class="list-group-item"
+							style="white-space:pre-wrap;">{{ launch.launch_failure_details }}</li>
+						<li v-else class="list-group-item"
+							style="white-space:pre-wrap;">{{ launch.timeline }}</li>
+						<li v-for="(payload, title) in launch.rocket.second_stage.payloads"
+							class="list-group-item">
+							Type: {{ payload.payload_type }}<br>
+							Nation: {{ payload.nationality }}<br>
+							Custmer: {{ payload.customers }}<br>
+							Mass: {{ payload.payload_mass_kg || "N/A" }} kg<br>
+							Time: {{ payload.flight_time_sec || "N/A" }} sec<br>
+							Orbit: {{ payload.orbit }}<br>
+							<div style="white-space:pre-wrap;">{{ payload.orbit_params }}</div>
+						</li>
+					</ul>
+					<div class="card-footer">Details: {{ launch.details }}</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.6/dist/vue.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/lodash@4.17/lodash.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/moment@2.24/moment.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jquery@3.4/dist/jquery.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.15/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+	<script>
+		(function () {
+			"use strict";
+
+			jQuery.getJSON("https://api.spacexdata.com/v3/launches", (dataRaw) => {
+				var dataLaunches = _.filter(dataRaw, { upcoming: false });
+				var dataPayloads = _.flatMap(dataLaunches, "rocket.second_stage.payloads");
+
+				let App = new Vue({
+					el: "#app-main",
+					data: { 
+						population: _.cloneDeep(dataRaw),
+						launches: _.cloneDeep(dataLaunches),
+						payloads: _.cloneDeep(dataPayloads),
+						dateFormat: "MM/DD/YYYY hh:mm:SS A"
+					}
+				});
+			});
+		})();
+	</script>
+</body>
+
+</html>
