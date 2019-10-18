@@ -77,8 +77,8 @@
 						</li>
 						<li class="list-group-item">
 							<span class="font-weight-bold">Deployed:</span>
-							{{ moment.unix(record.launch_date_unix + record.payload_deploy).format(dateFormat) }}
-							({{ record.payload_deploy }} seconds)
+							T+{{ record.payload_deploy }} seconds
+							({{ moment.unix(record.launch_date_unix + record.payload_deploy).format(dateFormat) }})
 						</li>
 						<li class="list-group-item">
 							<span class="font-weight-bold">Mass:</span>
