@@ -86,7 +86,8 @@
 						</li>
 						<li class="list-group-item">
 							<span class="font-weight-bold">Orbit:</span>
-							{{ record.orbit }}
+							{{ record.orbitName }}
+							({{ record.orbit }})
 						</li>
 						<li class="list-group-item">
 							<span class="font-weight-bold">Period:</span>
@@ -107,6 +108,23 @@
 	<script>
 		(function () {
 			"use strict";
+
+			function getOrbit (value) {
+				if (value === "LEO") return "Low Earth orbit";
+				if (value === "ISS") return "International Space Station";
+				if (value === "PO") return "Polar orbit";
+				if (value === "GTO") return "Geostationary transfer orbit";
+				if (value === "ES-L1") return "Sun-Earth L1";
+				if (value === "SSO") return "Semi-synchronous orbit";
+				if (value === "HCO") return "Heliocentric orbit";
+				if (value === "HEO") return "Highly elliptical orbit";
+				if (value === "MEO") return "Medium Earth orbit";
+				if (value === "VLEO") return "Very low Earth orbit";
+				if (value === "SO") return "Sub-orbital";
+				if (value === "GEO") return "Geosynchronous orbit";
+
+				return "Unknown";
+			}
 
 			jQuery.getJSON("https://api.spacexdata.com/v3/launches", (dataRaw) => {
 				var dataLaunches = _.filter(dataRaw, { upcoming: false });
@@ -135,6 +153,7 @@
 						launch.payload_mass_kg = payload.payload_mass_kg;
 						launch.period_min = payload.orbit_params.period_min;
 						launch.orbit = payload.orbit;
+						launch.orbitName = getOrbit(payload.orbit);
 
 						dataSample.push(launch);
 					});
