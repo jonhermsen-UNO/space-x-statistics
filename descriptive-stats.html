@@ -11,69 +11,90 @@
 </head>
 
 <body>
-	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+	<nav class="position-sticky navbar navbar-expand-lg navbar-dark bg-dark" style="top:0;z-index:1;">
 		<div class="container">
 			<h1 class="navbar-brand my-0">SpaceX Launch Data</h1>
+			<form class="form-inline my-2 my-lg-0">
+				<button type="button" class="btn btn-primary"
+					data-toggle="modal" data-target="#dataModal">
+					View raw data
+				</button>
+			</form>
 		</div>
 	</nav>
 
-	<main id="app-main" class="container my-3">
-		<p>TODO:</p>
-		<ul>
-			<li>Begin exploring <a href="./questions.md">questions</a></li>
-			<li>Descriptive statistics</li>
-			<li>Confidence intervals</li>
-			<li>Probability statements</li>
-			<li>About distributions</li>
-		</ul>
-
-		<span class="badge badge-primary">{{ launches.length }} Launches</span>
-		<span class="badge badge-success">{{ _.countBy(launches, "launch_success").true }} Successes</span>
-		<span class="badge badge-danger">{{ _.countBy(launches, "launch_success").false }} Fails</span>
-		<div class="row">
-			<div class="col-6">
-				<div v-for="launch in launches" class="col-12 my-3">
-					<div class="card">
-						<div class="card-header">
-							<div class="row align-items-center">
-								<div class="col-2 text-center my-1 embed-responsive embed-responsive-21by9">
-									<div class="embed-responsive-item text-center">
-										<img :src="launch.links.mission_patch_small" class="h-100">
-									</div>
-								</div>
-								<div class="col-8 h4 m-0">
-									[{{ launch.flight_number }}]
-									{{ launch.mission_name }}
-								</div>
-								<div class="col-2 text-right">
-									<span v-bind:class="(launch.launch_success ? 'badge-success' : 'badge-danger')"
-									class="badge">{{ launch.launch_success ? "Success" : "Fail" }}</span>
-								</div>
-							</div>
-						</div>
-						<ul class="list-group list-group-flush">
-							<li class="list-group-item">
-								Launched: {{ moment.unix(launch.launch_date_unix).format(dateFormat) }}
-							</li>
-							<li v-if="!launch.launch_success" class="list-group-item"
-								style="white-space:pre-wrap;">{{ launch.launch_failure_details }}</li>
-							<li v-else class="list-group-item"
-								style="white-space:pre-wrap;">{{ launch.timeline }}</li>
-							<li v-for="(payload, title) in launch.rocket.second_stage.payloads"
-								class="list-group-item">
-								Type: {{ payload.payload_type }}<br>
-								Nation: {{ payload.nationality }}<br>
-								Custmer: {{ payload.customers }}<br>
-								Mass: {{ payload.payload_mass_kg }} kg<br>
-								Orbit: {{ payload.orbit }}<br>
-								<div style="white-space:pre-wrap;">{{ payload.orbit_params }}</div>
-							</li>
-						</ul>
-						<div class="card-footer">{{ launch.details }}</div>
+	<main id="app-main" class="container-fluid my-3">
+		<div id="dataModal" class="modal">
+			<div class="modal-dialog modal-xl">
+				<div class="modal-content">
+					<div class="modal-header">
+						<div class="modal-title h5">Raw data</div>
+						<button type="button" class="close" data-dismiss="modal">
+							<span>&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<pre class="bg-dark text-light"
+							style="max-height:calc(100vh - 12rem)">{{ launches }}</pre>
+						<a href="https://docs.spacexdata.com/?version=latest#bc65ba60-decf-4289-bb04-4ca9df01b9c1">
+							View API documentation
+						</a>
 					</div>
 				</div>
 			</div>
-			<div class="text-monospace col-6" style="white-space:pre-wrap;">{{ launches }}</div>
+		</div>
+
+		<div class="text-center">
+			Sampling
+			<span class="badge badge-dark">{{ sample.length }}</span>
+			of
+			<span class="badge badge-dark">{{ payloads.length }}</span>
+			Payloads
+		</div>
+
+		<div class="row">
+			<div v-for="record in sample" class="col-12 col-lg-4 my-3">
+				<div class="card">
+					<div class="card-header">
+						<div class="row align-items-center">
+							<div class="col-2 text-center my-1 embed-responsive embed-responsive-21by9">
+								<div class="embed-responsive-item text-center">
+									<img :src="record.mission_patch_small" class="h-100">
+								</div>
+							</div>
+							<div class="col-10 h4 m-0">{{ record.payload_id }}</div>
+						</div>
+					</div>
+					<ul class="list-group list-group-flush">
+						<li class="list-group-item">
+							<span class="font-weight-bold">Mission:</span>
+							#{{ record.flight_number }}
+							{{ record.mission_name }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Launched:</span>
+							{{ moment.unix(record.launch_date_unix).format(dateFormat) }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Deployed:</span>
+							{{ moment.unix(record.launch_date_unix + record.payload_deploy).format(dateFormat) }}
+							({{ record.payload_deploy }} seconds)
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Weight:</span>
+							{{ record.payload_mass_kg }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Orbit:</span>
+							{{ record.orbit }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Period:</span>
+							{{  record.period_min }} minutes
+						</li>
+					</ul>
+				</div>
+			</div>
 		</div>
 	</main>
 
@@ -87,17 +108,48 @@
 		(function () {
 			"use strict";
 
-			jQuery.getJSON("https://api.spacexdata.com/v3/launches", (data) => {
-				console.log(data);
+			jQuery.getJSON("https://api.spacexdata.com/v3/launches", (dataRaw) => {
+				var dataLaunches = _.filter(dataRaw, { upcoming: false });
+				var dataPayloads = _.flatMap(dataLaunches, "rocket.second_stage.payloads");
+				var dataSample = [];
 
-				// only process launches which have occurred
-				data = _.filter(data, { upcoming: false });
+				_.forEach(dataRaw, function (obj) {
+					var launch = {};
+
+					if (obj.upcoming === true) return;
+					if (obj.launch_success === false) return;
+					if (!obj.timeline || !obj.timeline.payload_deploy) return;
+					if (obj.rocket.second_stage.payloads.length === 0) return;
+
+					launch.flight_number = obj.flight_number;
+					launch.mission_name = obj.mission_name;
+					launch.launch_date_unix = obj.launch_date_unix;
+					launch.mission_patch_small = obj.links.mission_patch_small;
+					launch.payload_deploy = obj.timeline.payload_deploy;
+
+					_.forEach(obj.rocket.second_stage.payloads, function (payload) {
+						if (payload.payload_mass_kg === null) return;
+						if (payload.orbit_params.period_min === null) return;
+
+						launch.payload_id = payload.payload_id;
+						launch.payload_mass_kg = payload.payload_mass_kg;
+						launch.period_min = payload.orbit_params.period_min;
+						launch.orbit = payload.orbit;
+
+						dataSample.push(launch);
+					});
+				});
+
+				console.log(dataSample);
 
 				let App = new Vue({
 					el: "#app-main",
 					data: { 
-						launches: data,
-						dateFormat: "MM/DD/YYYY hh:mm:SS A"
+						population: _.cloneDeep(dataRaw),
+						launches: _.cloneDeep(dataLaunches),
+						payloads: _.cloneDeep(dataPayloads),
+						sample: _.cloneDeep(dataSample),
+						dateFormat: "MM/DD/YYYY HH:mm:SS"
 					}
 				});
 			});
