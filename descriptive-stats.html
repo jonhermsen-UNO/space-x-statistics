@@ -155,7 +155,7 @@
 						launch.orbit = payload.orbit;
 						launch.orbitName = getOrbit(payload.orbit);
 
-						dataSample.push(launch);
+						dataSample.push(_.clone(launch));
 					});
 				});
 
