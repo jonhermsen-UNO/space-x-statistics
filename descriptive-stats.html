@@ -165,7 +165,7 @@
 				var dataPayloads = _.flatMap(dataLaunches, "rocket.second_stage.payloads");
 				var dataSample = sampleData(dataRaw);
 
-				let App = new Vue({
+				new Vue({
 					el: "#app-main",
 					data: { 
 						population: _.cloneDeep(dataRaw),
