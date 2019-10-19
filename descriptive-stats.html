@@ -90,8 +90,8 @@
 							({{ record.orbit }})
 						</li>
 						<li class="list-group-item">
-							<span class="font-weight-bold">Period:</span>
-							{{  record.period_min }} minutes
+							<span class="font-weight-bold">Revolutions:</span>
+							{{  record.mean_motion }}
 						</li>
 					</ul>
 				</div>
@@ -145,11 +145,11 @@
 
 					_.forEach(obj.rocket.second_stage.payloads, function (payload) {
 						if (payload.payload_mass_kg === null) return;
-						if (payload.orbit_params.period_min === null) return;
+						if (payload.orbit_params.mean_motion === null) return;
 
 						launch.payload_id = payload.payload_id;
 						launch.payload_mass_kg = payload.payload_mass_kg;
-						launch.period_min = payload.orbit_params.period_min;
+						launch.mean_motion = payload.orbit_params.mean_motion;
 						launch.orbit = payload.orbit;
 						launch.orbitName = getOrbit(payload.orbit);
 
