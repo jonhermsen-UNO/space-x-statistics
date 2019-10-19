@@ -126,12 +126,10 @@
 				return "Unknown";
 			}
 
-			jQuery.getJSON("https://api.spacexdata.com/v3/launches", (dataRaw) => {
-				var dataLaunches = _.filter(dataRaw, { upcoming: false });
-				var dataPayloads = _.flatMap(dataLaunches, "rocket.second_stage.payloads");
+			function sampleData (data) {
 				var dataSample = [];
 
-				_.forEach(dataRaw, function (obj) {
+				_.forEach(data, function (obj) {
 					var launch = {};
 
 					if (obj.upcoming === true) return;
@@ -159,7 +157,13 @@
 					});
 				});
 
-				console.log(dataSample);
+				return dataSample;
+			}
+
+			jQuery.getJSON("https://api.spacexdata.com/v3/launches", (dataRaw) => {
+				var dataLaunches = _.filter(dataRaw, { upcoming: false });
+				var dataPayloads = _.flatMap(dataLaunches, "rocket.second_stage.payloads");
+				var dataSample = sampleData(dataRaw);
 
 				let App = new Vue({
 					el: "#app-main",
