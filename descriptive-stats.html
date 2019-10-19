@@ -44,13 +44,25 @@
 			</div>
 		</div>
 
-		<div class="text-center">
+		<h2>Fields</h2>
+
+		<div class="row">
+			<div v-for="field in stats" class="col-12 col-lg-4 my-3">
+				<div class="card">
+					<div class="card-header">{{ field.uName }}</div>
+					<div class="card-body"></div>
+					<div class="card-footer">{{ field.uDescription }}</div>
+				</div>
+			</div>
+		</div>
+
+		<h2>
 			Sampling
 			<span class="badge badge-dark">{{ sample.length }}</span>
 			of
 			<span class="badge badge-dark">{{ payloads.length }}</span>
 			Payloads
-		</div>
+		</h2>
 
 		<div class="row">
 			<div v-for="record in sample" class="col-12 col-md-6 col-xl-4 my-3">
@@ -160,10 +172,49 @@
 				return dataSample;
 			}
 
+			function descriptiveStats (data) {
+				var descriptiveStats = {
+					uName: "",
+					uField: "",
+					uUOM: "",
+					uDescription: "",
+					uMin: 0,
+					uMax: 0,
+					uMean: 0,
+					uMedian: 0,
+					uMode: 0,
+					uQ1: 0,
+					uQ2: 0,
+					uStDev: 0
+				};
+
+				var mass = _.clone(descriptiveStats),
+					meanMotion = _.clone(descriptiveStats),
+					deploy = _.clone(descriptiveStats);
+
+				mass.uName = "Mass";
+				mass.uField = "payload_mass_kg";
+				mass.uUOM = "Kilograms";
+				mass.uDescription = "A measure of the amount of matter in the payload.";
+
+				meanMotion.uName = "Mean motion";
+				meanMotion.uField = "mean_motion";
+				meanMotion.uUOM = "Revolutions per day";
+				meanMotion.uDescription = "A measure of the average speed of the payload.";
+
+				deploy.uName = "Deployed";
+				deploy.uField = "payload_deploy";
+				deploy.uUOM = "Seconds after launch";
+				deploy.uDescription = "A measure of when the payload was released into orbit.";
+
+				return { mass, meanMotion, deploy }
+			}
+
 			jQuery.getJSON("https://api.spacexdata.com/v3/launches", (dataRaw) => {
 				var dataLaunches = _.filter(dataRaw, { upcoming: false });
 				var dataPayloads = _.flatMap(dataLaunches, "rocket.second_stage.payloads");
 				var dataSample = sampleData(dataRaw);
+				var dataStats = descriptiveStats(dataSample);
 
 				new Vue({
 					el: "#app-main",
@@ -172,6 +223,7 @@
 						launches: _.cloneDeep(dataLaunches),
 						payloads: _.cloneDeep(dataPayloads),
 						sample: _.cloneDeep(dataSample),
+						stats: _.cloneDeep(dataStats),
 						dateFormat: "MM/DD/YYYY HH:mm"
 					}
 				});
