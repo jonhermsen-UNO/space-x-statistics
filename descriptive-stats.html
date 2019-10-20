@@ -44,25 +44,70 @@
 			</div>
 		</div>
 
-		<h2>Fields</h2>
+		<h2 class="border-bottom border-primary pb-1">Variables of Interest</h2>
 
 		<div class="row">
-			<div v-for="field in stats" class="col-12 col-lg-4 my-3">
+			<div v-for="variable in stats" class="col-12 col-lg-4 my-3">
 				<div class="card">
-					<div class="card-header">{{ field.uName }}</div>
-					<div class="card-body"></div>
-					<div class="card-footer">{{ field.uDescription }}</div>
+					<div class="card-header">{{ variable.uName }}</div>
+					<ul class="list-group list-group-flush">
+						<li class="list-group-item">
+							<span class="font-weight-bold">Description:</span>
+							{{ variable.uDescription }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Unit of measure:</span>
+							{{ variable.uUOM }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Min:</span>
+							{{ variable.uMin }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Q1:</span>
+							{{ variable.uQ1 }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Median:</span>
+							{{ variable.uMedian }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Q3:</span>
+							{{ variable.uQ3 }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Max:</span>
+							{{ variable.uMax }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Mean:</span>
+							{{ variable.uMean }} &plusmn; {{ variable.uConInt }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Confidence Interval:</span>
+							{{ variable.uLower }} to {{ variable.uUpper }}<br>
+							<span class="font-weight-bold">Confidence Coefficient:</span>
+							95%
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Mode:</span>
+							{{ variable.uMode }}
+						</li>
+						<li class="list-group-item">
+							<span class="font-weight-bold">Std. Deviation:</span>
+							{{ variable.uStdDev }}
+						</li>
 				</div>
 			</div>
 		</div>
 
-		<h2>
+		<h3 class="border-bottom border-primary pb-1">
 			Sampling
 			<span class="badge badge-dark">{{ sample.length }}</span>
 			of
 			<span class="badge badge-dark">{{ payloads.length }}</span>
 			Payloads
-		</h2>
+		</h3>
 
 		<div class="row">
 			<div v-for="record in sample" class="col-12 col-md-6 col-xl-4 my-3">
@@ -121,6 +166,9 @@
 		(function () {
 			"use strict";
 
+			var precision = 4;
+			var t_0_05 = 2.010;
+
 			function getOrbitName (value) {
 				if (value === "LEO") return "Low Earth orbit";
 				if (value === "ISS") return "International Space Station";
@@ -137,7 +185,6 @@
 
 				return "Unknown";
 			}
-
 			function sampleData (data) {
 				var dataSample = [];
 
@@ -161,7 +208,7 @@
 
 						launch.payload_id = payload.payload_id;
 						launch.payload_mass_kg = payload.payload_mass_kg;
-						launch.mean_motion = payload.orbit_params.mean_motion;
+						launch.mean_motion = parseFloat(payload.orbit_params.mean_motion.toFixed(precision));
 						launch.orbit = payload.orbit;
 						launch.orbitName = getOrbitName(payload.orbit);
 
@@ -171,50 +218,119 @@
 
 				return dataSample;
 			}
-
-			function descriptiveStats (data) {
-				var descriptiveStats = {
+			function sampleStats (data) {
+				var variable = {
 					uName: "",
 					uField: "",
 					uUOM: "",
 					uDescription: "",
-					uMin: 0,
-					uMax: 0,
-					uMean: 0,
-					uMedian: 0,
-					uMode: 0,
-					uQ1: 0,
-					uQ2: 0,
-					uStDev: 0
+					data: []
 				};
 
-				var mass = _.clone(descriptiveStats),
-					meanMotion = _.clone(descriptiveStats),
-					deploy = _.clone(descriptiveStats);
+				var variableStats = [
+					_.clone(variable),
+					_.clone(variable),
+					_.clone(variable)
+				];
 
-				mass.uName = "Mass";
-				mass.uField = "payload_mass_kg";
-				mass.uUOM = "Kilograms";
-				mass.uDescription = "A measure of the amount of matter in the payload.";
+				variableStats[0].uName = "Mass";
+				variableStats[0].uField = "payload_mass_kg";
+				variableStats[0].uUOM = "Kilograms";
+				variableStats[0].uDescription = "A measure of the amount of matter in the payload.";
+				variableStats[0].uData = _.cloneDeep(data);
 
-				meanMotion.uName = "Mean motion";
-				meanMotion.uField = "mean_motion";
-				meanMotion.uUOM = "Revolutions per day";
-				meanMotion.uDescription = "A measure of the average speed of the payload.";
+				variableStats[1].uName = "Mean motion";
+				variableStats[1].uField = "mean_motion";
+				variableStats[1].uUOM = "Revolutions per day";
+				variableStats[1].uDescription = "A measure of the average speed of the payload.";
+				variableStats[1].uData = _.cloneDeep(data);
 
-				deploy.uName = "Deployed";
-				deploy.uField = "payload_deploy";
-				deploy.uUOM = "Seconds after launch";
-				deploy.uDescription = "A measure of when the payload was released into orbit.";
+				variableStats[2].uName = "Deployed";
+				variableStats[2].uField = "payload_deploy";
+				variableStats[2].uUOM = "Seconds after launch";
+				variableStats[2].uDescription = "A measure of when the payload was released into orbit.";
+				variableStats[2].uData = _.cloneDeep(data);
 
-				return { mass, meanMotion, deploy }
+				_.forEach (variableStats, function (obj) {
+					// Sort by variable of interest.
+					obj.uData = _.sortBy(obj.uData, obj.uField);
+
+					obj.uMin = getPercentile(obj.uData, obj.uField, 0).toFixed(precision);
+					obj.uQ1 = getPercentile(obj.uData, obj.uField, 25).toFixed(precision);
+					obj.uMedian = getPercentile(obj.uData, obj.uField, 50).toFixed(precision);
+					obj.uQ3 = getPercentile(obj.uData, obj.uField, 75).toFixed(precision);
+					obj.uMax = getPercentile(obj.uData, obj.uField, 100).toFixed(precision);
+					obj.uMean = getMean(obj.uData, obj.uField).toFixed(precision);
+					obj.uConInt = getConfidenceInterval(obj.uData, obj.uField).toFixed(precision);
+					obj.uLower = (parseFloat(obj.uMean) - parseFloat(obj.uConInt)).toFixed(precision);
+					obj.uUpper = (parseFloat(obj.uMean) + parseFloat(obj.uConInt)).toFixed(precision);
+					obj.uMode = getMode(obj.uData, obj.uField);
+					obj.uStdDev = getStdDev(obj.uData, obj.uField).toFixed(precision);
+				});
+
+				return variableStats;
+			}
+			function getPercentile (data, field, percentile) {
+				var values = _(data)
+					.map(function (obj) {
+						return obj[field];
+					})
+					.value();
+
+				var index = (percentile / 100) * (values.length - 1);
+				var base = Math.floor(index);
+				var rest = index - base;
+
+				if(values[base + 1] !== undefined) {
+					return values[base] + rest * (values[base + 1] - values[base]);
+				} else {
+					return values[base];
+				}
+			}
+			function getMean (data, field) {
+				return _.sumBy(data, field) / _.size(data);
+			}
+			function getMode (data, field) {
+				var mode = { value: "", count: 0 };
+
+				_(data)
+					.countBy(field)
+					.forEach(function (count, value) {
+						value = parseFloat(value).toFixed(precision);
+
+						if (mode.count < count) {
+							mode.count = count;
+							mode.value = value
+						} else if (mode.count === count) {
+							mode.value += ", " + value;
+						}
+					});
+
+				if (mode.count > 1) return mode.value;
+
+				return "None";
+			}
+			function getStdDev (data, field) {
+				var mean = getMean(data, field);
+				var variance = 0;
+
+				_.forEach(data, function (obj) {
+					variance += Math.pow((obj[field] - mean), 2);
+				});
+
+				variance /= (_.size(data) - 1)
+
+				return Math.sqrt(variance);
+			}
+			function getConfidenceInterval(data, field) {
+				return t_0_05 * getStdDev(data, field) / Math.sqrt(data.length);
 			}
 
 			jQuery.getJSON("https://api.spacexdata.com/v3/launches", (dataRaw) => {
 				var dataLaunches = _.filter(dataRaw, { upcoming: false });
 				var dataPayloads = _.flatMap(dataLaunches, "rocket.second_stage.payloads");
 				var dataSample = sampleData(dataRaw);
-				var dataStats = descriptiveStats(dataSample);
+				var dataStats = sampleStats(dataSample);
 
 				new Vue({
 					el: "#app-main",
@@ -224,7 +340,8 @@
 						payloads: _.cloneDeep(dataPayloads),
 						sample: _.cloneDeep(dataSample),
 						stats: _.cloneDeep(dataStats),
-						dateFormat: "MM/DD/YYYY HH:mm"
+						dateFormat: "MM/DD/YYYY HH:mm",
+						precision: precision
 					}
 				});
 			});
