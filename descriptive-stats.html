@@ -121,7 +121,7 @@
 		(function () {
 			"use strict";
 
-			function getOrbit (value) {
+			function getOrbitName (value) {
 				if (value === "LEO") return "Low Earth orbit";
 				if (value === "ISS") return "International Space Station";
 				if (value === "PO") return "Polar orbit";
@@ -163,7 +163,7 @@
 						launch.payload_mass_kg = payload.payload_mass_kg;
 						launch.mean_motion = payload.orbit_params.mean_motion;
 						launch.orbit = payload.orbit;
-						launch.orbitName = getOrbit(payload.orbit);
+						launch.orbitName = getOrbitName(payload.orbit);
 
 						dataSample.push(_.clone(launch));
 					});
