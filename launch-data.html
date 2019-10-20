@@ -47,27 +47,14 @@
 				let launches = [];
 
 				_.forEach(data, (launch, index) => {
-					if (!launch ||
-						// omit partial results
-						!launch.timeline ||
-						// omit failed launches
-						!launch.launch_success ||
-						// omit future launches
-						launch.upcoming ||
-						// omit launches which did not carry a payload
-						!launch.rocket.second_stage.payloads.length) {
-						return;
-					}
+					if (launch.upcoming === true) return;
+					if (launch.launch_success === false) return;
+					if (!launch.timeline || !launch.timeline.payload_deploy) return;
+					if (launch.rocket.second_stage.payloads.length === 0) return;
 
 					_.forEach(launch.rocket.second_stage.payloads, (currentPayload) => {
-						// omit non-orbiting results
-						if (!currentPayload.orbit_params.period_min ||
-							!currentPayload.orbit_params.lifespan_years ||
-							!launch.timeline.payload_deploy ||
-							// omit partial results
-							_.includes(currentPayload, null)) {
-							return;
-						}
+						if (currentPayload.payload_mass_kg === null) return;
+						if (currentPayload.orbit_params.mean_motion === null) return;
 
 						// compile the launch record
 						let launchData = {},
@@ -94,6 +81,7 @@
 						launchData.uOrbitPeriapsis = currentPayload.orbit_params.periapsis_km;
 						launchData.uOrbitApoapsis = currentPayload.orbit_params.apoapsis_km;
 						launchData.uOrbitOrbitTime = currentPayload.orbit_params.period_min;
+						launchData.uOrbitMeanMotion = currentPayload.orbit_params.mean_motion;
 						launchData.uOrbitLifespan = currentPayload.orbit_params.lifespan_years;
 
 						launches.push(launchData);
