@@ -84,18 +84,18 @@
 							{{ variable.uMean }} &plusmn; {{ variable.uConInt }}
 						</li>
 						<li class="list-group-item">
-							<span class="font-weight-bold">Confidence Interval:</span>
-							{{ variable.uLower }} to {{ variable.uUpper }}<br>
-							<span class="font-weight-bold">Confidence Coefficient:</span>
-							95%
+							<span class="font-weight-bold">Std. Deviation:</span>
+							{{ variable.uStdDev }}
 						</li>
 						<li class="list-group-item">
 							<span class="font-weight-bold">Mode:</span>
 							{{ variable.uMode }}
 						</li>
 						<li class="list-group-item">
-							<span class="font-weight-bold">Std. Deviation:</span>
-							{{ variable.uStdDev }}
+							We can say with 95% confidence, that the average payload
+							has a {{ _.lowerCase(variable.uName) }}
+							between {{ variable.uLower }} to {{ variable.uUpper }}
+							{{ _.lowerCase(variable.uUOM) }}.
 						</li>
 				</div>
 			</div>
@@ -245,7 +245,7 @@
 				variableStats[1].uDescription = "A measure of the average speed of the payload.";
 				variableStats[1].uData = _.cloneDeep(data);
 
-				variableStats[2].uName = "Deployed";
+				variableStats[2].uName = "Deployed time";
 				variableStats[2].uField = "payload_deploy";
 				variableStats[2].uUOM = "Seconds after launch";
 				variableStats[2].uDescription = "A measure of when the payload was released into orbit.";
