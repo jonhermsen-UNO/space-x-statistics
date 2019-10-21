@@ -97,6 +97,9 @@
 							between {{ variable.uLower }} to {{ variable.uUpper }}
 							{{ _.lowerCase(variable.uUOM) }}.
 						</li>
+						<li class="list-group-item">
+							{{ variable.uProbabilityStatement }}.
+						</li>
 				</div>
 			</div>
 		</div>
@@ -158,6 +161,7 @@
 
 	<script src="https://cdn.jsdelivr.net/npm/vue@2.6/dist/vue.min.js" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/lodash@4.17/lodash.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/mathjs@6.2.3/dist/math.min.js" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/moment@2.24/moment.min.js" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/jquery@3.4/dist/jquery.min.js" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.15/dist/umd/popper.min.js" crossorigin="anonymous"></script>
@@ -268,7 +272,28 @@
 					obj.uStdDev = getStdDev(obj.uData, obj.uField).toFixed(precision);
 				});
 
+				variableStats[0].uProbabilityStatement = "There is a "
+					+ ((1 - getNormDist(6000, variableStats[0].uMean, variableStats[0].uStdDev, true)).toFixed(3) * 100)
+					+ "% chance the next payload they deploy will be under 6000 " + _.lowerCase(variableStats[0].uUOM);
+
+				variableStats[1].uProbabilityStatement = "There is a "
+					+ (getNormDist(5, variableStats[1].uMean, variableStats[1].uStdDev, true).toFixed(3) * 100)
+					+ "% chance the next payload they deploy will have less than 5 " + _.lowerCase(variableStats[1].uUOM);
+
+				variableStats[2].uProbabilityStatement = "There is a "
+					+ ((getNormDist(3600, variableStats[2].uMean, variableStats[2].uStdDev, true)
+						- getNormDist(1800, variableStats[2].uMean, variableStats[2].uStdDev, true)).toFixed(3) * 100)
+					+ "% chance the next payload they deploy will be deployed between 30 and 60 minutes after launch";
+
 				return variableStats;
+			}
+			function getNormDist (x, mean, stdev, cumulative) {
+				if (cumulative === true) {
+					// HT: https://stackoverflow.com/questions/5259421/cumulative-distribution-function-in-javascript
+					return (1 - math.erf((mean - x ) / (Math.sqrt(2) * stdev))) / 2;
+				} else {
+					return (1 / (stdev * Math.sqrt(2 * Math.PI))) * Math.pow(Math.E, (-0.5 * Math.pow((x - mean) / stdev, 2)));
+				}
 			}
 			function getPercentile (data, field, percentile) {
 				var values = _(data)
