@@ -259,14 +259,13 @@
 				variableStats[2].uDescription = "A measure of when the payload was released into orbit.";
 
 				_.forEach (variableStats, function (obj) {
+					var alpha = 0.05;
+
 					obj.uHistogramArea = "histogram_" + obj.uField;
 					obj.uData = _.map(data, function (variable) {
 						return variable[obj.uField];
 					});
 					obj.uStats = jStat(obj.uData);
-
-					var variableQuantiles = jStat.percentile(obj.uData, 0.75),
-						alpha = 0.05;
 
 					obj.uMin = jStat.percentile(obj.uData, 0).toFixed(precision);
 					obj.uQ1 = jStat.percentile(obj.uData, 0.25).toFixed(precision);
