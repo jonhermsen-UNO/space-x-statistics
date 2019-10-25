@@ -161,7 +161,7 @@
 
 	<script src="https://cdn.jsdelivr.net/npm/vue@2.6/dist/vue.min.js" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/lodash@4.17/lodash.min.js" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/mathjs@6.2.3/dist/math.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jstat@1.9/dist/jstat.min.js" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/moment@2.24/moment.min.js" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/jquery@3.4/dist/jquery.min.js" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.15/dist/umd/popper.min.js" crossorigin="anonymous"></script>
@@ -171,7 +171,6 @@
 			"use strict";
 
 			var precision = 4;
-			var t_0_05 = 2.010;
 
 			function getOrbitName (value) {
 				if (value === "LEO") return "Low Earth orbit";
@@ -227,8 +226,7 @@
 					uName: "",
 					uField: "",
 					uUOM: "",
-					uDescription: "",
-					data: []
+					uDescription: ""
 				};
 
 				var variableStats = [
@@ -241,114 +239,53 @@
 				variableStats[0].uField = "payload_mass_kg";
 				variableStats[0].uUOM = "Kilograms";
 				variableStats[0].uDescription = "A measure of the amount of matter in the payload.";
-				variableStats[0].uData = _.cloneDeep(data);
 
 				variableStats[1].uName = "Mean motion";
 				variableStats[1].uField = "mean_motion";
 				variableStats[1].uUOM = "Revolutions per day";
 				variableStats[1].uDescription = "A measure of the average speed of the payload.";
-				variableStats[1].uData = _.cloneDeep(data);
 
 				variableStats[2].uName = "Deployed time";
 				variableStats[2].uField = "payload_deploy";
 				variableStats[2].uUOM = "Seconds after launch";
 				variableStats[2].uDescription = "A measure of when the payload was released into orbit.";
-				variableStats[2].uData = _.cloneDeep(data);
 
 				_.forEach (variableStats, function (obj) {
-					// Sort by variable of interest.
-					obj.uData = _.sortBy(obj.uData, obj.uField);
+					obj.uData = _.map(data, function (variable) {
+						return variable[obj.uField];
+					});
+					obj.uStats = jStat(obj.uData);
 
-					obj.uMin = getPercentile(obj.uData, obj.uField, 0).toFixed(precision);
-					obj.uQ1 = getPercentile(obj.uData, obj.uField, 25).toFixed(precision);
-					obj.uMedian = getPercentile(obj.uData, obj.uField, 50).toFixed(precision);
-					obj.uQ3 = getPercentile(obj.uData, obj.uField, 75).toFixed(precision);
-					obj.uMax = getPercentile(obj.uData, obj.uField, 100).toFixed(precision);
-					obj.uMean = getMean(obj.uData, obj.uField).toFixed(precision);
-					obj.uConInt = getConfidenceInterval(obj.uData, obj.uField).toFixed(precision);
-					obj.uLower = (parseFloat(obj.uMean) - parseFloat(obj.uConInt)).toFixed(precision);
-					obj.uUpper = (parseFloat(obj.uMean) + parseFloat(obj.uConInt)).toFixed(precision);
-					obj.uMode = getMode(obj.uData, obj.uField);
-					obj.uStdDev = getStdDev(obj.uData, obj.uField).toFixed(precision);
+					var variableQuantiles = jStat.percentile(obj.uData, 0.75),
+						alpha = 0.05;
+
+					obj.uMin = jStat.percentile(obj.uData, 0).toFixed(precision);
+					obj.uQ1 = jStat.percentile(obj.uData, 0.25).toFixed(precision);
+					obj.uMedian = jStat.percentile(obj.uData, 0.5).toFixed(precision);
+					obj.uQ3 = jStat.percentile(obj.uData, 0.75).toFixed(precision);
+					obj.uMax = jStat.percentile(obj.uData, 1).toFixed(precision);
+					obj.uMean = obj.uStats.mean().toFixed(precision);
+					obj.uLower = obj.uStats.tci(obj.uStats.mean(), alpha)[0].toFixed(precision);
+					obj.uUpper = obj.uStats.tci(obj.uStats.mean(), alpha)[1].toFixed(precision);
+					obj.uConInt = (obj.uUpper - obj.uStats.mean()).toFixed(precision);
+					obj.uMode = obj.uStats.mode().toFixed(precision);
+					obj.uStdDev = obj.uStats.stdev(true).toFixed(precision);
 				});
 
 				variableStats[0].uProbabilityStatement = "There is a "
-					+ ((1 - getNormDist(6000, variableStats[0].uMean, variableStats[0].uStdDev, true)).toFixed(3) * 100)
+					+ ((1 - jStat.normal.cdf(6000, variableStats[0].uMean, variableStats[0].uStdDev)).toFixed(3) * 100)
 					+ "% chance the next payload they deploy will be over 6000 " + _.lowerCase(variableStats[0].uUOM);
 
 				variableStats[1].uProbabilityStatement = "There is a "
-					+ (getNormDist(5, variableStats[1].uMean, variableStats[1].uStdDev, true).toFixed(3) * 100)
+					+ (jStat.normal.cdf(5, variableStats[1].uMean, variableStats[1].uStdDev).toFixed(3) * 100)
 					+ "% chance the next payload they deploy will have less than 5 " + _.lowerCase(variableStats[1].uUOM);
 
 				variableStats[2].uProbabilityStatement = "There is a "
-					+ ((getNormDist(3600, variableStats[2].uMean, variableStats[2].uStdDev, true)
-						- getNormDist(1800, variableStats[2].uMean, variableStats[2].uStdDev, true)).toFixed(3) * 100)
+					+ ((jStat.normal.cdf(3600, variableStats[2].uMean, variableStats[2].uStdDev)
+						- jStat.normal.cdf(1800, variableStats[2].uMean, variableStats[2].uStdDev)).toFixed(3) * 100)
 					+ "% chance the next payload they deploy will be deployed between 30 and 60 minutes after launch";
 
 				return variableStats;
-			}
-			function getNormDist (x, mean, stdev, cumulative) {
-				if (cumulative === true) {
-					// HT: https://stackoverflow.com/questions/5259421/cumulative-distribution-function-in-javascript
-					return (1 - math.erf((mean - x ) / (Math.sqrt(2) * stdev))) / 2;
-				} else {
-					return (1 / (stdev * Math.sqrt(2 * Math.PI))) * Math.pow(Math.E, (-0.5 * Math.pow((x - mean) / stdev, 2)));
-				}
-			}
-			function getPercentile (data, field, percentile) {
-				var values = _(data)
-					.map(function (obj) {
-						return obj[field];
-					})
-					.value();
-
-				var index = (percentile / 100) * (values.length - 1);
-				var base = Math.floor(index);
-				var rest = index - base;
-
-				if(values[base + 1] !== undefined) {
-					return values[base] + rest * (values[base + 1] - values[base]);
-				} else {
-					return values[base];
-				}
-			}
-			function getMean (data, field) {
-				return _.sumBy(data, field) / _.size(data);
-			}
-			function getMode (data, field) {
-				var mode = { value: "", count: 0 };
-
-				_(data)
-					.countBy(field)
-					.forEach(function (count, value) {
-						value = parseFloat(value).toFixed(precision);
-
-						if (mode.count < count) {
-							mode.count = count;
-							mode.value = value
-						} else if (mode.count === count) {
-							mode.value += ", " + value;
-						}
-					});
-
-				if (mode.count > 1) return mode.value;
-
-				return "None";
-			}
-			function getStdDev (data, field) {
-				var mean = getMean(data, field);
-				var variance = 0;
-
-				_.forEach(data, function (obj) {
-					variance += Math.pow((obj[field] - mean), 2);
-				});
-
-				variance /= (_.size(data) - 1)
-
-				return Math.sqrt(variance);
-			}
-			function getConfidenceInterval(data, field) {
-				return t_0_05 * getStdDev(data, field) / Math.sqrt(data.length);
 			}
 
 			jQuery.getJSON("https://api.spacexdata.com/v3/launches", (dataRaw) => {
