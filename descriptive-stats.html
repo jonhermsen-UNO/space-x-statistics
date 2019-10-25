@@ -274,7 +274,7 @@
 
 				variableStats[0].uProbabilityStatement = "There is a "
 					+ ((1 - getNormDist(6000, variableStats[0].uMean, variableStats[0].uStdDev, true)).toFixed(3) * 100)
-					+ "% chance the next payload they deploy will be under 6000 " + _.lowerCase(variableStats[0].uUOM);
+					+ "% chance the next payload they deploy will be over 6000 " + _.lowerCase(variableStats[0].uUOM);
 
 				variableStats[1].uProbabilityStatement = "There is a "
 					+ (getNormDist(5, variableStats[1].uMean, variableStats[1].uStdDev, true).toFixed(3) * 100)
