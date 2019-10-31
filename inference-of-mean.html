@@ -52,7 +52,7 @@
 			<div class="col-12 mb-3">
 				<div class="card bg-dark text-light">
 					<div class="card-body row align-items-center">
-						<div class="col-6 text-center">
+						<div class="col-12 col-md-6 text-center mb-3">
 							<img src="./assets/falcon-9.png"
 								class="mb-3 mr-3" style="height:300px">
 							<img src="./assets/falcon-heavy.png"
@@ -63,7 +63,7 @@
 								<sup class="fas fa-external-link-alt fa-xs"></sup>
 							</a>
 						</div>
-						<div class="col-6">
+						<div class="col-12 col-md-6">
 							<dl class="row">
 								<dt class="col-6">Point estimate</dt>
 									<dd class="col-6 text-right">
@@ -90,16 +90,17 @@
 									<dd class="col-6 text-right">
 										{{ pValue.toFixed(precision) }}
 									</dd>
-								<dt class="col-6">Question</dt>
-									<dd class="col-6 text-right">
-										Is there a significant difference in how long it takes
-										either rocket to deliver its payload into orbit?
-									</dd>
-								<dt class="col-6">Result</dt>
-									<dd class="col-6 text-right" v-bind:class="testHypothesis.class">
-										{{ testHypothesis.value }}
-									</dd>
 							</dl>
+							<div class="row">
+								<div class="col-12">
+									<p class="mb-1">Is there a significant difference in how
+									long it takes either rocket to complete its mission?</p>
+									<p class="mb-0"
+										v-bind:class="testHypothesis.class">
+										{{ testHypothesis.value }}
+									</p>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -213,7 +214,6 @@
 			return Math.sqrt(a + b);
 		};
 		vueComputed.intervalEstimate = function () {
-			console.log(this.tScore);
 			return this.tScore * this.standardError;
 		};
 		vueComputed.tScore = function () {
@@ -242,12 +242,12 @@
 			var lower = jStat.studentt.cdf(this.testValue, this.freedomDegree),
 				upper = 1 - lower;
 
-			return 2 * Math.min(lower, upper);
+			return Math.min(lower, upper) * 2.0;
 		};
 		vueComputed.testHypothesis = function () {
 			return this.pValue <= this.alpha
-				? { class: "text-warning", value: "There is no significant difference." }
-				: { class: "text-success", value: "There is a significant difference!" };
+				? { class: "text-warning", value: "No, there is no difference." }
+				: { class: "text-success", value: "Yes, there is a difference!" };
 		};
 
 		Object.freeze(vueMethods);
