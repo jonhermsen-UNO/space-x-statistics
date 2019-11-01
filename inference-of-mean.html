@@ -78,17 +78,17 @@
 									<dd class="col-6 text-right">
 										{{ freedomDegree.toFixed(precision) }}
 									</dd>
-								<dt class="col-6">Significance</dt>
-									<dd class="col-6 text-right">
-										{{ alpha }}
-									</dd>
 								<dt class="col-6">Test value</dt>
 									<dd class="col-6 text-right">
 										{{ testValue.toFixed(precision) }}
 									</dd>
 								<dt class="col-6">p-value</dt>
 									<dd class="col-6 text-right">
-										{{ pValue.toFixed(precision) }}
+										{{ pValue.toFixed(12) }}
+									</dd>
+								<dt class="col-6">Significance</dt>
+									<dd class="col-6 text-right">
+										{{ alpha.toFixed(12) }}
 									</dd>
 							</dl>
 							<div class="row">
@@ -246,7 +246,7 @@
 			return Math.min(lower, upper) * 2.0;
 		};
 		vueComputed.testHypothesis = function () {
-			return this.pValue <= this.alpha
+			return parseFloat(this.pValue) <= parseFloat(this.alpha)
 				? { class: "text-warning", value: "No, there is no difference." }
 				: { class: "text-success", value: "Yes, there is a difference!" };
 		};
