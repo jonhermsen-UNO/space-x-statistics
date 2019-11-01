@@ -177,9 +177,10 @@
 						var stats = _(value).chain()
 							.flatMap("timeline.payload_deploy")
 							.compact()
-							// Sampling 5 elements from Falcon 9 launches gives a
-							// fairly reasonable representation of the population.
-							.sampleSize(5)
+							// Sampling 30 elements from Falcon 9 launches gives
+							// fairly consistent measures of center, so is believed
+							// to be a reasonable representation of the population.
+							.sampleSize(30)
 							.value();
 
 						obj[key] = jStat(stats);
