@@ -251,8 +251,8 @@
 			return Math.min(lower, upper) * 2.0;
 		};
 		vueComputed.testHypothesis = function () {
-			var H0 = { class: "text-warning", value: "No, there is no difference." },
-				Ha = { class: "text-success", value: "Yes, there is a difference!" },
+			var H0 = { class: "text-warning", value: "No, there is no significant difference." },
+				Ha = { class: "text-success", value: "Yes, there is a significant difference!" },
 				accuracy = Math.pow(10, this.precisionDeep);
 
 			// Avoid the usual issue with float point rounding by
