@@ -87,11 +87,11 @@
 									</dd>
 								<dt class="col-6">p-value</dt>
 									<dd class="col-6 text-right">
-										{{ pValue.toFixed(12) }}
+										{{ pValue.toFixed(precisionDeep) }}
 									</dd>
 								<dt class="col-6">Significance</dt>
 									<dd class="col-6 text-right">
-										{{ alpha.toFixed(12) }}
+										{{ alpha.toFixed(precisionDeep) }}
 									</dd>
 							</dl>
 							<hr class="border-mute">
@@ -160,6 +160,7 @@
 
 		vueData.alpha = 0.05;
 		vueData.precision = 2;
+		vueData.precisionDeep = 12;
 		vueData.isLoading = false;
 		vueData.deployData = {};
 		vueData.rawData = [];
@@ -250,9 +251,15 @@
 			return Math.min(lower, upper) * 2.0;
 		};
 		vueComputed.testHypothesis = function () {
-			return parseFloat(this.pValue) <= parseFloat(this.alpha)
-				? { class: "text-warning", value: "No, there is no difference." }
-				: { class: "text-success", value: "Yes, there is a difference!" };
+			var H0 = { class: "text-warning", value: "No, there is no difference." },
+				Ha = { class: "text-success", value: "Yes, there is a difference!" },
+				accuracy = Math.pow(10, this.precisionDeep);
+
+			// Avoid the usual issue with float point rounding by
+			// forcing values to match at the desired precision.
+			return Math.round(this.pValue * accuracy) <= Math.round(this.alpha * accuracy)
+				? Ha // Reject the null hypothesis
+				: H0; // Accept the null hypothesis
 		};
 
 		Object.freeze(vueMethods);
