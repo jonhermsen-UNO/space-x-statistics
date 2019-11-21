@@ -7,7 +7,7 @@
   * [Pretty](./launch-data-pretty.html)
 * [Flight Club Telemetry](https://www.flightclub.io:8443/api/swagger-ui.html)
 
-## Discussion pages
+## Discussion Pages
 
 * [Descriptive Statistics: Project Starting Point](./discussion/descriptive-stats.html)
 * [Inferences about Means and Proportions](./discussion/inference-of-mean.html)
