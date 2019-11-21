@@ -9,8 +9,8 @@
 
 ## Discussion pages
 
-* [Descriptive Statistics: Project Starting Point](./descriptive-stats.html)
-* [Inferences about Means and Proportions](./inference-of-mean.html)
+* [Descriptive Statistics: Project Starting Point](./discussion/descriptive-stats.html)
+* [Inferences about Means and Proportions](./discussion/inference-of-mean.html)
 
 ## Resources
 
