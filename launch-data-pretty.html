@@ -73,6 +73,9 @@
 						<li class="list-group-item">
 							Launched: {{ moment.unix(launch.launch_date_unix).format(dateFormat) }}
 						</li>
+						<li class="list-group-item">
+							Rocket: {{ launch.rocket.rocket_name }}
+						</li>
 						<li v-if="!launch.launch_success" class="list-group-item"
 							style="white-space:pre-wrap;">{{ launch.launch_failure_details }}</li>
 						<li v-else class="list-group-item"
