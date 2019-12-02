@@ -205,6 +205,9 @@
 		Bundle.dataLaunch = [];
 		Bundle.dataPayload = [];
 
+		var alpha = 0.05,
+			dateFormat = "MM/DD/YYYY HH:mm";
+
 		function pageLoad () {
 			jQuery.getJSON("https://api.spacexdata.com/v3/launches")
 				.then(function (data) {
@@ -245,8 +248,8 @@
 					slideAudio: new Audio(),
 					slideData: null,
 					slideStat: null,
-					alpha: 0.05,
-					dateFormat: "MM/DD/YYYY HH:mm"
+					alpha: alpha,
+					dateFormat: dateFormat
 				};
 
 			// Title
