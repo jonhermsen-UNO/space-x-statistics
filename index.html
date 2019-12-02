@@ -130,28 +130,39 @@
 				<tr>
 					<th></th>
 					<th>Mission</th>
-					<th>Launch</th>
-					<th>MaxQ</th>
-					<th>MECO</th>
-					<th>Status</th>
+					<th>Rocket</th>
+					<th class="text-right">Payload Mass</th>
+					<th>Launch Time</th>
+					<th class="text-right">MaxQ</th>
+					<th class="text-right">MECO</th>
+					<th class="text-right">SECO</th>
+					<th class="text-right">Deploy</th>
+					<th class="text-center">Status</th>
 				</tr>
 			</thead>
 			<tbody>
 			{% _.forEach(data.slideData, function (obj) { %}
 			<tr>
+				<td><img src="{{ obj.uPatch }}" alt="{{ obj.uMission }} Patch" style="height:0.9375rem;"></td>
 				<td>
-					<img style="height:0.9375rem;"
-						src="{{ obj.links.mission_patch_small }}"
-						alt="{{ obj.mission_name }} Patch"
-						class="{{ obj.links.mission_patch_small ? '' : 'd-none' }}">
+					{{ obj.uMission }}<br>
+					<span class="text-muted">{{ obj.uSite }}</span>
 				</td>
-				<td><a href="{{ obj.links.video_link }}" target="_blank" class="text-light">{{ obj.mission_name }}</a></td>
-				<td>{{ moment.unix(obj.launch_date_unix).format(data.dateFormat) }}</td>
-				<td>{{ obj.timeline && obj.timeline.maxq ? obj.timeline.maxq : "N/A" }}</td>
-				<td>{{ obj.timeline && obj.timeline.meco ? obj.timeline.meco : "N/A" }}</td>
+				<td>{{ obj.uRocket }}</td>
+				<td class="text-right">{{ obj.uPayloadMass }}</td>
+				<td>
+					<a href="{{ obj.uVideo }}" target="_blank" class="text-light">
+						{{ obj.uTime }}
+						<i class="fas fa-external-link-alt fa-fw fa-xs"></i>
+					</a>
+				</td>
+				<td class="text-right">{{ obj.uMaxQ }}</td>
+				<td class="text-right">{{ obj.uMECO }}</td>
+				<td class="text-right">{{ obj.uSECO }}</td>
+				<td class="text-right">{{ obj.uDeploy }}</td>
 				<td class="text-center">
-					<span class="badge {{ obj.launch_success ? 'badge-success' : 'badge-danger' }}">
-						{{ obj.launch_success ? "Success" : "Fail" }}
+					<span class="badge {{ obj.uIsSuccess ? 'badge-success' : 'badge-danger' }}">
+						{{ obj.uIsSuccess ? "Success" : "Fail" }}
 					</span>
 				</td>
 			</tr>
@@ -211,7 +222,7 @@
 		function pageLoad () {
 			jQuery.getJSON("https://api.spacexdata.com/v3/launches")
 				.then(function (data) {
-					Bundle.dataClean = data;
+					Bundle.dataClean = cleanData(data);
 					Bundle.dataLaunch = getLaunchData();
 					Bundle.dataPayload = getPayloadData();
 
@@ -224,11 +235,46 @@
 				.then(insertSlides)
 				.then(insertModals);
 		}
-		function getLaunchData () {
-			return _(Bundle.dataClean).chain()
+		function cleanData (data) {
+			return _(data).chain()
+				// Include previous launches only
 				.filter({upcoming: false})
+				// Include Falcon 9 launches only
 				.filter(["rocket.rocket_name", "Falcon 9"])
 				.value();
+		}
+		function getLaunchData () {
+			var launchData = [];
+
+			_.forEach(Bundle.dataClean, function (obj) {
+				var currentLaunch = {};
+
+				currentLaunch.uMission = obj.mission_name;
+				currentLaunch.uSite = obj.launch_site.site_name;
+				currentLaunch.uTime = moment.unix(obj.launch_date_unix).format(dateFormat);
+				currentLaunch.uTimeUnix = obj.launch_date_unix;
+				currentLaunch.uRocket = obj.rocket.rocket_name + " " + obj.rocket.rocket_type;
+				currentLaunch.uPayloadMass = _.reduce(obj.rocket.second_stage.payloads,
+					function (sum, obj) { return sum + obj.payload_mass_kg }, 0);
+				currentLaunch.uMaxQ = obj.timeline ? obj.timeline.maxq : null;
+				currentLaunch.uMECO = obj.timeline ? obj.timeline.meco : null;
+				// Use final SECO time to indicate engine cutoff
+				currentLaunch.uSECO = obj.timeline ? (obj.timeline["seco-2"] || obj.timeline["seco-1"]) : null;
+				// Use final deploy time to indicate mission complete
+				currentLaunch.uDeploy = obj.timeline ? (
+					obj.timeline.dragon_bay_door_deploy ||
+					obj.timeline.payload_deploy_2 ||
+					obj.timeline.payload_deploy_1 ||
+					obj.timeline.payload_deploy) :
+					null;
+				currentLaunch.uPatch = obj.links ? obj.links.mission_patch_small : null;
+				currentLaunch.uVideo = obj.links ? obj.links.video_link : null;
+				currentLaunch.uIsSuccess = obj.launch_success;
+
+				launchData.push(currentLaunch);
+			});
+
+			return launchData;
 		}
 		function getPayloadData () {
 			var payloadData = {};
