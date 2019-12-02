@@ -74,8 +74,11 @@
 			{% _.forEach(data.slideList, function (obj, index) { %}
 				<a href="#" class="list-group-item list-group-item-action text-light bg-dark"
 					data-index="{{ index }}" data-dismiss="modal">
-					<i class="fas fa-photo-video fa-fw mr-3"></i>
-					Slide {{ index + 1 }}
+					{{ obj.slideTitle }} Slide
+					<span class="float-right">
+						<i class="fas fa-layer-group fa-fw"></i>
+						{{ index + 1 }}
+					</span>
 				</a>
 			{% }) %}
 			</div>
@@ -100,7 +103,7 @@
 
 	<script id="TemplateSlide1" type="text/template">
 	<div class="col-12">
-		<h2>Research Questions</h2>
+		<h2>{{ data.slideTitle }}</h2>
 		<p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 		Donec quis massa aliquam, iaculis ipsum eu, mattis ex. Nullam volutpat iaculis
 		ex, in hendrerit risus feugiat.</p>
@@ -115,14 +118,14 @@
 
 	<script id="TemplateSlide2" type="text/template">
 	<div class="col-12 mb-3">
-		<h2>Dataset: Launches</h2>
+		<h2>{{ data.slideTitle }}</h2>
 		<p class="lead">Launches are only included if they satisfy the following properties</p>
 		<ul>
 			<li>The launch time was prior to {{ moment().format(data.dateFormat) }}</li>
 			<li>The launch vehicle was the Falcon 9</li>
 		</ul>
 		<table class="table table-striped table-dark">
-			<caption>Viewing {{ data.dataClean.length }} results</caption>
+			<caption>Viewing {{ data.slideData.length }} results</caption>
 			<thead>
 				<tr>
 					<th></th>
@@ -134,7 +137,7 @@
 				</tr>
 			</thead>
 			<tbody>
-			{% _.forEach(data.dataClean, function (obj) { %}
+			{% _.forEach(data.slideData, function (obj) { %}
 			<tr>
 				<td>
 					<img style="height:0.9375rem;"
@@ -200,9 +203,6 @@
 		Bundle.slideList = [];
 		Bundle.dataClean = [];
 
-		var alpha = 0.05,
-			dateFormat = "MM/DD/YYYY HH:mm";
-
 		function pageLoad () {
 			jQuery.getJSON("https://api.spacexdata.com/v3/launches")
 				.then(function (data) {
@@ -218,14 +218,37 @@
 				.then(insertModals);
 		}
 		function insertSlides (data) {
-			//_(data).chain().filter({upcoming: false}).filter(["rocket.rocket_name", "Falcon 9"]).value();
-			Template.slide0 = _.template(jQuery("#TemplateSlide0").html());
-			Template.slide1 = _.template(jQuery("#TemplateSlide1").html());
-			Template.slide2 = _.template(jQuery("#TemplateSlide2").html());
+			var currentIndex = 0,
+				currentSlide = null,
+				slideBundle = {
+					slideTitle: "",
+					slideTemplate: "",
+					slideAudio: new Audio(),
+					slideData: null,
+					slideStat: null,
+					alpha: 0.05,
+					dateFormat: "MM/DD/YYYY HH:mm"
+				};
 
-			Bundle.slideList.push(Template.slide0());
-			Bundle.slideList.push(Template.slide1());
-			Bundle.slideList.push(Template.slide2({ dateFormat: dateFormat, dataClean: Bundle.dataClean }));
+			//_(data).chain().filter({upcoming: false}).filter(["rocket.rocket_name", "Falcon 9"]).value();
+			// Title
+			currentSlide = _.cloneDeep(slideBundle);
+			currentSlide.slideTitle = "Title";
+			currentSlide.slideTemplate = _.template(jQuery("#TemplateSlide" + currentIndex++).html());
+			Bundle.slideList.push(currentSlide);
+
+			// Research questions
+			currentSlide = _.cloneDeep(slideBundle);
+			currentSlide.slideTitle = "Research Questions";
+			currentSlide.slideTemplate = _.template(jQuery("#TemplateSlide" + currentIndex++).html());
+			Bundle.slideList.push(currentSlide);
+
+			// Dataset: Launches
+			currentSlide = _.cloneDeep(slideBundle);
+			currentSlide.slideTitle = "Dataset: Launches";
+			currentSlide.slideTemplate = _.template(jQuery("#TemplateSlide" + currentIndex++).html());
+			currentSlide.slideData = Bundle.dataClean;
+			Bundle.slideList.push(currentSlide);
 
 			updateSlide();
 		}
@@ -248,8 +271,10 @@
 			});
 		}
 		function updateSlide () {
+			var currentSlide = Bundle.slideList[Bundle.slideIndex];
+
 			DOM.slideIndex.text(Bundle.slideIndex + 1);
-			DOM.slideContainer.html(Bundle.slideList[Bundle.slideIndex]);
+			DOM.slideContainer.html(currentSlide.slideTemplate(currentSlide));
 		}
 		function prevSlide () {
 			Bundle.slideIndex = (Bundle.slideIndex === 0)
