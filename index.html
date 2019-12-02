@@ -145,7 +145,9 @@
 			<tr>
 				<td><img src="{{ obj.uPatch }}" alt="{{ obj.uMission }} Patch" style="height:0.9375rem;"></td>
 				<td>
-					{{ obj.uMission }}<br>
+					<span data-toggle="tooltip" data-placement="right" title="{{ obj.uDetails }}">
+						{{ obj.uMission }}
+					</span><br>
 					<span class="text-muted">{{ obj.uSite }}</span>
 				</td>
 				<td>{{ obj.uRocket }}</td>
@@ -250,6 +252,7 @@
 				var currentLaunch = {};
 
 				currentLaunch.uMission = obj.mission_name;
+				currentLaunch.uDetails = obj.details;
 				currentLaunch.uSite = obj.launch_site.site_name;
 				currentLaunch.uTime = moment.unix(obj.launch_date_unix).format(dateFormat);
 				currentLaunch.uTimeUnix = obj.launch_date_unix;
@@ -344,6 +347,7 @@
 
 			DOM.slideIndex.text(Bundle.slideIndex + 1);
 			DOM.slideContainer.html(currentSlide.slideTemplate(currentSlide));
+			DOM.slideContainer.find("[data-toggle='tooltip']").tooltip();
 		}
 		function prevSlide () {
 			Bundle.slideIndex = (Bundle.slideIndex === 0)
