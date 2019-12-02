@@ -233,6 +233,9 @@
 			_.forEach(Bundle.dataLaunch, function (obj, key) {
 			});
 		}
+		function getSlideTemplate (index) {
+			return _.template(jQuery("#TemplateSlide" + index++).html());
+		}
 		function insertSlides (data) {
 			var currentIndex = 0,
 				currentSlide = null,
@@ -249,19 +252,19 @@
 			// Title
 			currentSlide = _.cloneDeep(slideBundle);
 			currentSlide.slideTitle = "Title";
-			currentSlide.slideTemplate = _.template(jQuery("#TemplateSlide" + currentIndex++).html());
+			currentSlide.slideTemplate = getSlideTemplate(currentIndex++);
 			Bundle.slideList.push(currentSlide);
 
 			// Research questions
 			currentSlide = _.cloneDeep(slideBundle);
 			currentSlide.slideTitle = "Research Questions";
-			currentSlide.slideTemplate = _.template(jQuery("#TemplateSlide" + currentIndex++).html());
+			currentSlide.slideTemplate = getSlideTemplate(currentIndex++);
 			Bundle.slideList.push(currentSlide);
 
 			// Dataset: Launches
 			currentSlide = _.cloneDeep(slideBundle);
 			currentSlide.slideTitle = "Dataset: Launches";
-			currentSlide.slideTemplate = _.template(jQuery("#TemplateSlide" + currentIndex++).html());
+			currentSlide.slideTemplate = getSlideTemplate(currentIndex++);
 			currentSlide.slideData = Bundle.dataLaunch;
 			Bundle.slideList.push(currentSlide);
 
