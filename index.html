@@ -53,7 +53,7 @@
 				</button>
 			</div>
 			<div class="modal-body">
-				<pre><code class="hljs json" style="max-height:calc(100vh - 13rem)">{{ data.dataSpaceX }}</code></pre>
+				<pre><code class="hljs json" style="max-height:calc(100vh - 13rem)">{{ data.dataClean }}</code></pre>
 				<a href="https://docs.spacexdata.com/?version=latest" target="_blank"
 					class="text-light">View documentation</a>
 			</div>
@@ -122,7 +122,7 @@
 			<li>The launch vehicle was the Falcon 9</li>
 		</ul>
 		<table class="table table-striped table-dark">
-			<caption>Viewing {{ data.dataSpaceX.length }} results</caption>
+			<caption>Viewing {{ data.dataClean.length }} results</caption>
 			<thead>
 				<tr>
 					<th></th>
@@ -134,7 +134,7 @@
 				</tr>
 			</thead>
 			<tbody>
-			{% _.forEach(data.dataSpaceX, function (obj) { %}
+			{% _.forEach(data.dataClean, function (obj) { %}
 			<tr>
 				<td>
 					<img style="height:0.9375rem;"
@@ -198,7 +198,7 @@
 
 		Bundle.slideIndex = 0;
 		Bundle.slideList = [];
-		Bundle.dataSpaceX = [];
+		Bundle.dataClean = [];
 
 		var alpha = 0.05,
 			dateFormat = "MM/DD/YYYY HH:mm";
@@ -206,7 +206,7 @@
 		function pageLoad () {
 			jQuery.getJSON("https://api.spacexdata.com/v3/launches")
 				.then(function (data) {
-					Bundle.dataSpaceX = data;
+					Bundle.dataClean = data;
 
 					DOM.loadSpinner.addClass("d-none");
 					DOM.slideDeck.removeClass("d-none");
@@ -225,13 +225,13 @@
 
 			Bundle.slideList.push(Template.slide0());
 			Bundle.slideList.push(Template.slide1());
-			Bundle.slideList.push(Template.slide2({ dateFormat: dateFormat, dataSpaceX: Bundle.dataSpaceX }));
+			Bundle.slideList.push(Template.slide2({ dateFormat: dateFormat, dataClean: Bundle.dataClean }));
 
 			updateSlide();
 		}
 		function insertModals () {
 			DOM.dataModal.html(Template.dataModal({
-				dataSpaceX: JSON.stringify(Bundle.dataSpaceX, null, 2)
+				dataClean: JSON.stringify(Bundle.dataClean, null, 2)
 			}));
 			DOM.viewDataModal.on("click", function () {
 				DOM.dataModal.modal();
