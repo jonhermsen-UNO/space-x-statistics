@@ -202,11 +202,15 @@
 		Bundle.slideIndex = 0;
 		Bundle.slideList = [];
 		Bundle.dataClean = [];
+		Bundle.dataLaunch = [];
+		Bundle.dataPayload = [];
 
 		function pageLoad () {
 			jQuery.getJSON("https://api.spacexdata.com/v3/launches")
 				.then(function (data) {
 					Bundle.dataClean = data;
+					Bundle.dataLaunch = getLaunchData();
+					Bundle.dataPayload = getPayloadData();
 
 					DOM.loadSpinner.addClass("d-none");
 					DOM.slideDeck.removeClass("d-none");
@@ -216,6 +220,18 @@
 				})
 				.then(insertSlides)
 				.then(insertModals);
+		}
+		function getLaunchData () {
+			return _(Bundle.dataClean).chain()
+				.filter({upcoming: false})
+				.filter(["rocket.rocket_name", "Falcon 9"])
+				.value();
+		}
+		function getPayloadData () {
+			var payloadData = {};
+
+			_.forEach(Bundle.dataLaunch, function (obj, key) {
+			});
 		}
 		function insertSlides (data) {
 			var currentIndex = 0,
@@ -230,7 +246,6 @@
 					dateFormat: "MM/DD/YYYY HH:mm"
 				};
 
-			//_(data).chain().filter({upcoming: false}).filter(["rocket.rocket_name", "Falcon 9"]).value();
 			// Title
 			currentSlide = _.cloneDeep(slideBundle);
 			currentSlide.slideTitle = "Title";
@@ -247,7 +262,7 @@
 			currentSlide = _.cloneDeep(slideBundle);
 			currentSlide.slideTitle = "Dataset: Launches";
 			currentSlide.slideTemplate = _.template(jQuery("#TemplateSlide" + currentIndex++).html());
-			currentSlide.slideData = Bundle.dataClean;
+			currentSlide.slideData = Bundle.dataLaunch;
 			Bundle.slideList.push(currentSlide);
 
 			updateSlide();
