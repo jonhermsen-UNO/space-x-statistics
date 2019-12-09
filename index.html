@@ -130,16 +130,16 @@
 				<tr>
 					<th></th>
 					<th>Mission</th>
+					<th>Launch Time</th>
 					<th>Launch Site</th>
 					<th>Rocket</th>
 					<th class="text-right">Payload Mass</th>
-					<th>Launch Time</th>
 					<th class="text-right">MaxQ</th>
 					<th class="text-right">MECO</th>
 					<th class="text-right">SECO</th>
 					<th class="text-right">Deploy</th>
 					<th class="text-center">Core Landing</th>
-					<th class="text-center">Status</th>
+					<th class="text-center">Mission Status</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -151,24 +151,24 @@
 						{{ obj.uMission }}
 					</span>
 				</td>
-				<td>{{ obj.uSite }}</td>
-				<td>{{ obj.uRocket }}</td>
-				<td class="text-right">{{ obj.uPayloadMass }}</td>
 				<td>
 					<a href="{{ obj.uVideo }}" target="_blank" class="text-light">
 						{{ obj.uTime }}
 						<i class="fas fa-external-link-alt fa-fw fa-xs"></i>
 					</a>
 				</td>
+				<td>{{ obj.uSite }}</td>
+				<td>{{ obj.uRocket }}</td>
+				<td class="text-right">{{ obj.uPayloadMass }}</td>
 				<td class="text-right">{{ obj.uMaxQ }}</td>
 				<td class="text-right">{{ obj.uMECO }}</td>
 				<td class="text-right">{{ obj.uSECO }}</td>
 				<td class="text-right">{{ obj.uDeploy }}</td>
 				<td class="text-center">
 					<span class="badge
-						{{ obj.uIsLandSuccess === null ? 'd-none' : '' }}
-						{{ obj.uIsLandSuccess ? 'badge-success' : 'badge-danger' }}">
-						{{ obj.uIsLandSuccess ? "Success" : "Fail" }}
+						{{ obj.uDidCoreLand === null ? 'd-none' : '' }}
+						{{ obj.uDidCoreLand ? 'badge-success' : 'badge-danger' }}">
+						{{ obj.uDidCoreLand ? "Success" : "Fail" }}
 					</span>
 				</td>
 				<td class="text-center">
@@ -334,8 +334,10 @@
 
 				currentLaunch.uMission = obj.mission_name;
 				currentLaunch.uDetails = obj.details;
-				currentLaunch.uSite = obj.launch_site.site_name;
+				currentLaunch.uPatch = obj.links ? obj.links.mission_patch_small : null;
+				currentLaunch.uVideo = obj.links ? obj.links.video_link : null;
 				currentLaunch.uTime = moment.unix(obj.launch_date_unix).format(dateFormat);
+				currentLaunch.uSite = obj.launch_site.site_name;
 				currentLaunch.uRocket = obj.rocket.rocket_name + " " + obj.rocket.rocket_type;
 				currentLaunch.uPayloadMass = _.reduce(obj.rocket.second_stage.payloads,
 					function (sum, obj) { return sum + obj.payload_mass_kg }, 0);
@@ -350,9 +352,7 @@
 					obj.timeline.payload_deploy_1 ||
 					obj.timeline.payload_deploy) :
 					null;
-				currentLaunch.uPatch = obj.links ? obj.links.mission_patch_small : null;
-				currentLaunch.uVideo = obj.links ? obj.links.video_link : null;
-				currentLaunch.uIsLandSuccess = obj.rocket.first_stage.cores[0].landing_intent
+				currentLaunch.uDidCoreLand = obj.rocket.first_stage.cores[0].landing_intent
 					? obj.rocket.first_stage.cores[0].land_success
 					: null;
 				currentLaunch.uIsSuccess = obj.launch_success;
