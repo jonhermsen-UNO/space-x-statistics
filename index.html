@@ -343,14 +343,16 @@
 					function (sum, obj) { return sum + obj.payload_mass_kg }, 0);
 				currentLaunch.uMaxQ = obj.timeline ? obj.timeline.maxq : null;
 				currentLaunch.uMECO = obj.timeline ? obj.timeline.meco : null;
-				// Use final SECO time to indicate engine cutoff
+				// Use final SECO time to indicate engine cutoff,
+				// since second stage is still used until that time
 				currentLaunch.uSECO = obj.timeline ? (obj.timeline["seco-2"] || obj.timeline["seco-1"]) : null;
-				// Use final deploy time to indicate mission complete
+				// Use initial deploy time to indicate mission complete,
+				// since payload is free of launch vehicle at that time
 				currentLaunch.uDeploy = obj.timeline ? (
-					obj.timeline.dragon_bay_door_deploy ||
-					obj.timeline.payload_deploy_2 ||
+					obj.timeline.dragon_separation ||
+					obj.timeline.payload_deploy ||
 					obj.timeline.payload_deploy_1 ||
-					obj.timeline.payload_deploy) :
+					obj.timeline.payload_deploy_2) :
 					null;
 				currentLaunch.uDidCoreLand = obj.rocket.first_stage.cores[0].landing_intent
 					? obj.rocket.first_stage.cores[0].land_success
@@ -366,36 +368,47 @@
 			var payloadData = [];
 
 			_.forEach(Bundle.dataClean, function (obj0, key) {
-				_.forEach(obj0.rocket.second_stage.payloads, function (obj1, key) {
+				_.forEach(obj0.rocket.second_stage.payloads, function (obj1, index) {
 					var currentPayload = {};
 
 					currentPayload.uMission = obj0.mission_name;
-					currentPayload.uSite = obj0.launch_site.site_name;
-					currentPayload.uTime = moment.unix(obj0.launch_date_unix).format(dateFormat);
-					currentPayload.uRocket = obj0.rocket.rocket_name + " " + obj0.rocket.rocket_type;
-					// Use final deploy time to indicate mission complete
-					currentPayload.uDeploy = obj0.timeline ? (
-						obj0.timeline.dragon_bay_door_deploy ||
-						obj0.timeline.payload_deploy_2 ||
-						obj0.timeline.payload_deploy_1 ||
-						obj0.timeline.payload_deploy) :
-						null;
 					currentPayload.uPatch = obj0.links ? obj0.links.mission_patch_small : null;
-					currentPayload.uIsSuccess = obj0.launch_success;
-
-					currentPayload.uPayloadID = obj1.payload_id;
+					currentPayload.uTime = moment.unix(obj0.launch_date_unix).format(dateFormat);
+					currentPayload.uSite = obj0.launch_site.site_name;
+					currentPayload.uRocket = obj0.rocket.rocket_name + " " + obj0.rocket.rocket_type;
 					currentPayload.uPayloadType = obj1.payload_type;
-					currentPayload.uPayloadMass = obj1.payload_mass_kg;
-					currentPayload.uCustomers = obj1.customers ? obj1.customers.join(", ") : null;
+					currentPayload.uPayloadID = obj1.payload_id;
 					currentPayload.uNationality = obj1.nationality;
+					currentPayload.uCustomers = obj1.customers ? obj1.customers.join(", ") : null;
 					currentPayload.uOrbit = obj1.orbit;
 					currentPayload.uOrbitReferenceSystem = obj1.orbit_params.reference_system;
 					currentPayload.uOrbitRegime = obj1.orbit_params.regime;
+					currentPayload.uPayloadMass = obj1.payload_mass_kg;
+					switch (obj0.mission_name) {
+						case "ABS-3A / Eutelsat 115W B":
+						case "ABS-2A / Eutelsat 117W B":
+						case "Iridium NEXT Mission 6":
+							currentPayload.uDeploy = obj0.timeline["payload_deploy_" + (index + 1)];
+							break;
+						case "Nusantara Satu (PSN-6) / S5 / Beresheet":
+							currentPayload.uDeploy = (obj1.orbit_params.regime === "geostationary")
+								? obj0.timeline.payload_deploy_1
+								: obj0.timeline.payload_deploy_2;
+							break;
+						default:
+							currentPayload.uDeploy = obj0.timeline ? (
+								obj0.timeline.dragon_separation ||
+								obj0.timeline.payload_deploy) :
+								null;
+							break;
+					}
+
 					currentPayload.uOrbitPeriodMinutes = obj1.orbit_params.period_min;
 					currentPayload.uOrbitMeanMotion = obj1.orbit_params.mean_motion;
 					currentPayload.uOrbitPeriapsisKM = obj1.orbit_params.periapsis_km;
 					currentPayload.uOrbitApoapsisKM = obj1.orbit_params.apoapsis_km;
 					currentPayload.uOrbitLifespanYR = obj1.orbit_params.lifespan_years;
+					currentPayload.uIsSuccess = obj0.launch_success;
 
 
 					payloadData.push(currentPayload);
