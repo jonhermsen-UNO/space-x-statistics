@@ -197,13 +197,13 @@
 				<tr>
 					<th></th>
 					<th>Mission</th>
+					<th>Launch Time</th>
 					<th>Launch Site</th>
 					<th>Rocket</th>
-					<th>Launch Time</th>
 					<th>Payload</th>
-					<th>Payload ID</th>
-					<th>Customer</th>
+					<th>Payload Name</th>
 					<th>Nationality</th>
+					<th>Customer</th>
 					<th>Orbit</th>
 					<th>Reference System</th>
 					<th>Regime</th>
@@ -222,13 +222,13 @@
 			<tr>
 				<td><img src="{{ obj.uPatch }}" alt="{{ obj.uMission }} Patch" style="height:0.9375rem;"></td>
 				<td>{{ obj.uMission }}</td>
+				<td>{{ obj.uTime }}</td>
 				<td>{{ obj.uSite }}</td>
 				<td>{{ obj.uRocket }}</td>
-				<td>{{ obj.uTime }}</td>
 				<td>{{ obj.uPayloadType }}</td>
 				<td>{{ obj.uPayloadID }}</td>
-				<td>{{ obj.uCustomers }}</td>
 				<td>{{ obj.uNationality }}</td>
+				<td>{{ obj.uCustomers }}</td>
 				<td>{{ obj.uOrbit }}</td>
 				<td>{{ obj.uOrbitReferenceSystem }}</td>
 				<td>{{ obj.uOrbitRegime }}</td>
@@ -365,39 +365,37 @@
 		function getPayloadData () {
 			var payloadData = [];
 
-			_.forEach(Bundle.dataClean, function (obj, key) {
-				var currentLaunch = {};
+			_.forEach(Bundle.dataClean, function (obj0, key) {
+				_.forEach(obj0.rocket.second_stage.payloads, function (obj1, key) {
+					var currentPayload = {};
 
-				currentLaunch.uMission = obj.mission_name;
-				currentLaunch.uSite = obj.launch_site.site_name;
-				currentLaunch.uTime = moment.unix(obj.launch_date_unix).format(dateFormat);
-				currentLaunch.uRocket = obj.rocket.rocket_name + " " + obj.rocket.rocket_type;
-				// Use final deploy time to indicate mission complete
-				currentLaunch.uDeploy = obj.timeline ? (
-					obj.timeline.dragon_bay_door_deploy ||
-					obj.timeline.payload_deploy_2 ||
-					obj.timeline.payload_deploy_1 ||
-					obj.timeline.payload_deploy) :
-					null;
-				currentLaunch.uPatch = obj.links ? obj.links.mission_patch_small : null;
-				currentLaunch.uIsSuccess = obj.launch_success;
+					currentPayload.uMission = obj0.mission_name;
+					currentPayload.uSite = obj0.launch_site.site_name;
+					currentPayload.uTime = moment.unix(obj0.launch_date_unix).format(dateFormat);
+					currentPayload.uRocket = obj0.rocket.rocket_name + " " + obj0.rocket.rocket_type;
+					// Use final deploy time to indicate mission complete
+					currentPayload.uDeploy = obj0.timeline ? (
+						obj0.timeline.dragon_bay_door_deploy ||
+						obj0.timeline.payload_deploy_2 ||
+						obj0.timeline.payload_deploy_1 ||
+						obj0.timeline.payload_deploy) :
+						null;
+					currentPayload.uPatch = obj0.links ? obj0.links.mission_patch_small : null;
+					currentPayload.uIsSuccess = obj0.launch_success;
 
-				_.forEach(obj.rocket.second_stage.payloads, function (obj, key) {
-					var currentPayload = _.cloneDeep(currentLaunch);
-
-					currentPayload.uPayloadID = obj.payload_id;
-					currentPayload.uPayloadType = obj.payload_type;
-					currentPayload.uPayloadMass = obj.payload_mass_kg;
-					currentPayload.uCustomers = obj.customers ? obj.customers.join(", ") : null;
-					currentPayload.uNationality = obj.nationality;
-					currentPayload.uOrbit = obj.orbit;
-					currentPayload.uOrbitReferenceSystem = obj.orbit_params.reference_system;
-					currentPayload.uOrbitRegime = obj.orbit_params.regime;
-					currentPayload.uOrbitPeriodMinutes = obj.orbit_params.period_min;
-					currentPayload.uOrbitMeanMotion = obj.orbit_params.mean_motion;
-					currentPayload.uOrbitPeriapsisKM = obj.orbit_params.periapsis_km;
-					currentPayload.uOrbitApoapsisKM = obj.orbit_params.apoapsis_km;
-					currentPayload.uOrbitLifespanYR = obj.orbit_params.lifespan_years;
+					currentPayload.uPayloadID = obj1.payload_id;
+					currentPayload.uPayloadType = obj1.payload_type;
+					currentPayload.uPayloadMass = obj1.payload_mass_kg;
+					currentPayload.uCustomers = obj1.customers ? obj1.customers.join(", ") : null;
+					currentPayload.uNationality = obj1.nationality;
+					currentPayload.uOrbit = obj1.orbit;
+					currentPayload.uOrbitReferenceSystem = obj1.orbit_params.reference_system;
+					currentPayload.uOrbitRegime = obj1.orbit_params.regime;
+					currentPayload.uOrbitPeriodMinutes = obj1.orbit_params.period_min;
+					currentPayload.uOrbitMeanMotion = obj1.orbit_params.mean_motion;
+					currentPayload.uOrbitPeriapsisKM = obj1.orbit_params.periapsis_km;
+					currentPayload.uOrbitApoapsisKM = obj1.orbit_params.apoapsis_km;
+					currentPayload.uOrbitLifespanYR = obj1.orbit_params.lifespan_years;
 
 
 					payloadData.push(currentPayload);
