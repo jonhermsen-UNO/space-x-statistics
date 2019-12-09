@@ -130,6 +130,7 @@
 				<tr>
 					<th></th>
 					<th>Mission</th>
+					<th>Launch Site</th>
 					<th>Rocket</th>
 					<th class="text-right">Payload Mass</th>
 					<th>Launch Time</th>
@@ -137,6 +138,7 @@
 					<th class="text-right">MECO</th>
 					<th class="text-right">SECO</th>
 					<th class="text-right">Deploy</th>
+					<th class="text-center">Core Landing</th>
 					<th class="text-center">Status</th>
 				</tr>
 			</thead>
@@ -147,9 +149,9 @@
 				<td>
 					<span data-toggle="tooltip" data-placement="right" title="{{ obj.uDetails }}">
 						{{ obj.uMission }}
-					</span><br>
-					<span class="text-muted">{{ obj.uSite }}</span>
+					</span>
 				</td>
+				<td>{{ obj.uSite }}</td>
 				<td>{{ obj.uRocket }}</td>
 				<td class="text-right">{{ obj.uPayloadMass }}</td>
 				<td>
@@ -162,6 +164,81 @@
 				<td class="text-right">{{ obj.uMECO }}</td>
 				<td class="text-right">{{ obj.uSECO }}</td>
 				<td class="text-right">{{ obj.uDeploy }}</td>
+				<td class="text-center">
+					<span class="badge
+						{{ obj.uIsLandSuccess === null ? 'd-none' : '' }}
+						{{ obj.uIsLandSuccess ? 'badge-success' : 'badge-danger' }}">
+						{{ obj.uIsLandSuccess ? "Success" : "Fail" }}
+					</span>
+				</td>
+				<td class="text-center">
+					<span class="badge {{ obj.uIsSuccess ? 'badge-success' : 'badge-danger' }}">
+						{{ obj.uIsSuccess ? "Success" : "Fail" }}
+					</span>
+				</td>
+			</tr>
+			{% }); %}
+			</tbody>
+		</table>
+	</div>
+	</script>
+
+	<script id="TemplateSlide3" type="text/template">
+	<div class="col-12 mb-3">
+		<h2>{{ data.slideTitle }}</h2>
+		<p class="lead">Payloads are only included if they satisfy the following properties</p>
+		<ul>
+			<li>The launch time was prior to {{ moment().format(data.dateFormat) }}</li>
+			<li>The launch vehicle was the Falcon 9</li>
+		</ul>
+		<table class="table table-striped table-dark">
+			<caption>Viewing {{ data.slideData.length }} results</caption>
+			<thead>
+				<tr>
+					<th></th>
+					<th>Mission</th>
+					<th>Launch Site</th>
+					<th>Rocket</th>
+					<th>Launch Time</th>
+					<th>Payload</th>
+					<th>Payload ID</th>
+					<th>Customer</th>
+					<th>Nationality</th>
+					<th>Orbit</th>
+					<th>Reference System</th>
+					<th>Regime</th>
+					<th class="text-right">Mass</th>
+					<th class="text-right">Deploy</th>
+					<th class="text-right">Period</th>
+					<th class="text-right">Mean Motion</th>
+					<th class="text-right">Pariapsis</th>
+					<th class="text-right">Apoapsis</th>
+					<th class="text-right">Lifespan</th>
+					<th class="text-center">Status</th>
+				</tr>
+			</thead>
+			<tbody>
+			{% _.forEach(data.slideData, function (obj) { %}
+			<tr>
+				<td><img src="{{ obj.uPatch }}" alt="{{ obj.uMission }} Patch" style="height:0.9375rem;"></td>
+				<td>{{ obj.uMission }}</td>
+				<td>{{ obj.uSite }}</td>
+				<td>{{ obj.uRocket }}</td>
+				<td>{{ obj.uTime }}</td>
+				<td>{{ obj.uPayloadType }}</td>
+				<td>{{ obj.uPayloadID }}</td>
+				<td>{{ obj.uCustomers }}</td>
+				<td>{{ obj.uNationality }}</td>
+				<td>{{ obj.uOrbit }}</td>
+				<td>{{ obj.uOrbitReferenceSystem }}</td>
+				<td>{{ obj.uOrbitRegime }}</td>
+				<td class="text-right">{{ obj.uPayloadMass }}</td>
+				<td class="text-right">{{ obj.uDeploy }}</td>
+				<td class="text-right">{{ obj.uOrbitPeriodMinutes }}</td>
+				<td class="text-right">{{ obj.uOrbitMeanMotion }}</td>
+				<td class="text-right">{{ obj.uOrbitPeriapsisKM }}</td>
+				<td class="text-right">{{ obj.uOrbitApoapsisKM }}</td>
+				<td class="text-right">{{ obj.uOrbitLifespanYR }}</td>
 				<td class="text-center">
 					<span class="badge {{ obj.uIsSuccess ? 'badge-success' : 'badge-danger' }}">
 						{{ obj.uIsSuccess ? "Success" : "Fail" }}
@@ -255,7 +332,6 @@
 				currentLaunch.uDetails = obj.details;
 				currentLaunch.uSite = obj.launch_site.site_name;
 				currentLaunch.uTime = moment.unix(obj.launch_date_unix).format(dateFormat);
-				currentLaunch.uTimeUnix = obj.launch_date_unix;
 				currentLaunch.uRocket = obj.rocket.rocket_name + " " + obj.rocket.rocket_type;
 				currentLaunch.uPayloadMass = _.reduce(obj.rocket.second_stage.payloads,
 					function (sum, obj) { return sum + obj.payload_mass_kg }, 0);
@@ -272,6 +348,9 @@
 					null;
 				currentLaunch.uPatch = obj.links ? obj.links.mission_patch_small : null;
 				currentLaunch.uVideo = obj.links ? obj.links.video_link : null;
+				currentLaunch.uIsLandSuccess = obj.rocket.first_stage.cores[0].landing_intent
+					? obj.rocket.first_stage.cores[0].land_success
+					: null;
 				currentLaunch.uIsSuccess = obj.launch_success;
 
 				launchData.push(currentLaunch);
@@ -280,9 +359,45 @@
 			return launchData;
 		}
 		function getPayloadData () {
-			var payloadData = {};
+			var payloadData = [];
 
-			_.forEach(Bundle.dataLaunch, function (obj, key) {
+			_.forEach(Bundle.dataClean, function (obj, key) {
+				var currentLaunch = {};
+
+				currentLaunch.uMission = obj.mission_name;
+				currentLaunch.uSite = obj.launch_site.site_name;
+				currentLaunch.uTime = moment.unix(obj.launch_date_unix).format(dateFormat);
+				currentLaunch.uRocket = obj.rocket.rocket_name + " " + obj.rocket.rocket_type;
+				// Use final deploy time to indicate mission complete
+				currentLaunch.uDeploy = obj.timeline ? (
+					obj.timeline.dragon_bay_door_deploy ||
+					obj.timeline.payload_deploy_2 ||
+					obj.timeline.payload_deploy_1 ||
+					obj.timeline.payload_deploy) :
+					null;
+				currentLaunch.uPatch = obj.links ? obj.links.mission_patch_small : null;
+				currentLaunch.uIsSuccess = obj.launch_success;
+
+				_.forEach(obj.rocket.second_stage.payloads, function (obj, key) {
+					var currentPayload = _.cloneDeep(currentLaunch);
+
+					currentPayload.uPayloadID = obj.payload_id;
+					currentPayload.uPayloadType = obj.payload_type;
+					currentPayload.uPayloadMass = obj.payload_mass_kg;
+					currentPayload.uCustomers = obj.customers ? obj.customers.join(", ") : null;
+					currentPayload.uNationality = obj.nationality;
+					currentPayload.uOrbit = obj.orbit;
+					currentPayload.uOrbitReferenceSystem = obj.orbit_params.reference_system;
+					currentPayload.uOrbitRegime = obj.orbit_params.regime;
+					currentPayload.uOrbitPeriodMinutes = obj.orbit_params.period_min;
+					currentPayload.uOrbitMeanMotion = obj.orbit_params.mean_motion;
+					currentPayload.uOrbitPeriapsisKM = obj.orbit_params.periapsis_km;
+					currentPayload.uOrbitApoapsisKM = obj.orbit_params.apoapsis_km;
+					currentPayload.uOrbitLifespanYR = obj.orbit_params.lifespan_years;
+
+
+					payloadData.push(currentPayload);
+				});
 			});
 
 			return payloadData;
@@ -320,6 +435,13 @@
 			currentSlide.slideTitle = "Dataset: Launches";
 			currentSlide.slideTemplate = getSlideTemplate(currentIndex++);
 			currentSlide.slideData = Bundle.dataLaunch;
+			Bundle.slideList.push(currentSlide);
+
+			// Dataset: Payloads
+			currentSlide = _.cloneDeep(slideBundle);
+			currentSlide.slideTitle = "Dataset: Payloads";
+			currentSlide.slideTemplate = getSlideTemplate(currentIndex++);
+			currentSlide.slideData = Bundle.dataPayload;
 			Bundle.slideList.push(currentSlide);
 
 			updateSlide();
