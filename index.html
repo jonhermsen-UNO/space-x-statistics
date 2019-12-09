@@ -318,11 +318,11 @@
 			return _(data).chain()
 				.filter(function (obj) {
 					// Include existing launches only
-					return (obj.upcoming === false)
+					return (obj.upcoming === false) &&
 						// Include launches before 12/08/2019 only
-						&& (obj.launch_date_unix < 1575784800)
+						(obj.launch_date_unix < 1575784800) &&
 						// Include Falcon 9 launches only
-						&& obj.rocket.rocket_name === "Falcon 9";
+						obj.rocket.rocket_name === "Falcon 9";
 				})
 				.value();
 		}
