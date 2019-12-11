@@ -132,14 +132,14 @@
 					<th>Mission</th>
 					<th>Launch Time</th>
 					<th>Launch Site</th>
-					<th>Rocket</th>
+					<th>Launch Vehicle</th>
 					<th class="text-right">Payload Mass</th>
 					<th class="text-right">MaxQ</th>
 					<th class="text-right">MECO</th>
 					<th class="text-right">SECO</th>
 					<th class="text-right">Deploy</th>
-					<th class="text-center">Core Landing</th>
-					<th class="text-center">Mission Status</th>
+					<th class="text-center">Core Landed</th>
+					<th class="text-center">Mission Success</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -168,12 +168,12 @@
 					<span class="badge
 						{{ obj.uDidCoreLand === null ? 'd-none' : '' }}
 						{{ obj.uDidCoreLand ? 'badge-success' : 'badge-danger' }}">
-						{{ obj.uDidCoreLand ? "Success" : "Fail" }}
+						{{ obj.uDidCoreLand ? "True" : "False" }}
 					</span>
 				</td>
 				<td class="text-center">
 					<span class="badge {{ obj.uIsSuccess ? 'badge-success' : 'badge-danger' }}">
-						{{ obj.uIsSuccess ? "Success" : "Fail" }}
+						{{ obj.uIsSuccess ? "True" : "False" }}
 					</span>
 				</td>
 			</tr>
@@ -196,17 +196,10 @@
 			<thead>
 				<tr>
 					<th></th>
-					<th>Mission</th>
-					<th>Launch Time</th>
-					<th>Launch Site</th>
-					<th>Rocket</th>
 					<th>Payload</th>
-					<th>Payload Name</th>
-					<th>Nationality</th>
-					<th>Customer</th>
+					<th>Type</th>
+					<th>Launch Vehicle</th>
 					<th>Orbit</th>
-					<th>Reference System</th>
-					<th>Regime</th>
 					<th class="text-right">Mass</th>
 					<th class="text-right">Deploy</th>
 					<th class="text-right">Period</th>
@@ -214,24 +207,17 @@
 					<th class="text-right">Pariapsis</th>
 					<th class="text-right">Apoapsis</th>
 					<th class="text-right">Lifespan</th>
-					<th class="text-center">Status</th>
+					<th class="text-center">Mission Success</th>
 				</tr>
 			</thead>
 			<tbody>
 			{% _.forEach(data.slideData, function (obj) { %}
 			<tr>
 				<td><img src="{{ obj.uPatch }}" alt="{{ obj.uMission }} Patch" style="height:0.9375rem;"></td>
-				<td>{{ obj.uMission }}</td>
-				<td>{{ obj.uTime }}</td>
-				<td>{{ obj.uSite }}</td>
-				<td>{{ obj.uRocket }}</td>
-				<td>{{ obj.uPayloadType }}</td>
 				<td>{{ obj.uPayloadID }}</td>
-				<td>{{ obj.uNationality }}</td>
-				<td>{{ obj.uCustomers }}</td>
+				<td>{{ obj.uPayloadType }}</td>
+				<td>{{ obj.uRocket }}</td>
 				<td>{{ obj.uOrbit }}</td>
-				<td>{{ obj.uOrbitReferenceSystem }}</td>
-				<td>{{ obj.uOrbitRegime }}</td>
 				<td class="text-right">{{ obj.uPayloadMass }}</td>
 				<td class="text-right">{{ obj.uDeploy }}</td>
 				<td class="text-right">{{ obj.uOrbitPeriodMinutes }}</td>
@@ -241,7 +227,7 @@
 				<td class="text-right">{{ obj.uOrbitLifespanYR }}</td>
 				<td class="text-center">
 					<span class="badge {{ obj.uIsSuccess ? 'badge-success' : 'badge-danger' }}">
-						{{ obj.uIsSuccess ? "Success" : "Fail" }}
+						{{ obj.uIsSuccess ? "True" : "False" }}
 					</span>
 				</td>
 			</tr>
@@ -339,8 +325,12 @@
 				currentLaunch.uTime = moment.unix(obj.launch_date_unix).format(dateFormat);
 				currentLaunch.uSite = obj.launch_site.site_name;
 				currentLaunch.uRocket = obj.rocket.rocket_name + " " + obj.rocket.rocket_type;
-				currentLaunch.uPayloadMass = _.reduce(obj.rocket.second_stage.payloads,
-					function (sum, obj) { return sum + obj.payload_mass_kg }, 0);
+				currentLaunch.uPayloadMass = _.reduce(
+					obj.rocket.second_stage.payloads,
+					function (sum, obj) {
+						return sum + obj.payload_mass_kg
+					}, 0)
+					|| null;
 				currentLaunch.uMaxQ = obj.timeline ? obj.timeline.maxq : null;
 				currentLaunch.uMECO = obj.timeline ? obj.timeline.meco : null;
 				// Use final SECO time to indicate engine cutoff,
@@ -373,16 +363,10 @@
 
 					currentPayload.uMission = obj0.mission_name;
 					currentPayload.uPatch = obj0.links ? obj0.links.mission_patch_small : null;
-					currentPayload.uTime = moment.unix(obj0.launch_date_unix).format(dateFormat);
-					currentPayload.uSite = obj0.launch_site.site_name;
-					currentPayload.uRocket = obj0.rocket.rocket_name + " " + obj0.rocket.rocket_type;
-					currentPayload.uPayloadType = obj1.payload_type;
 					currentPayload.uPayloadID = obj1.payload_id;
-					currentPayload.uNationality = obj1.nationality;
-					currentPayload.uCustomers = obj1.customers ? obj1.customers.join(", ") : null;
+					currentPayload.uPayloadType = obj1.payload_type;
+					currentPayload.uRocket = obj0.rocket.rocket_name + " " + obj0.rocket.rocket_type;
 					currentPayload.uOrbit = obj1.orbit;
-					currentPayload.uOrbitReferenceSystem = obj1.orbit_params.reference_system;
-					currentPayload.uOrbitRegime = obj1.orbit_params.regime;
 					currentPayload.uPayloadMass = obj1.payload_mass_kg;
 					switch (obj0.mission_name) {
 						case "ABS-3A / Eutelsat 115W B":
@@ -402,14 +386,12 @@
 								null;
 							break;
 					}
-
-					currentPayload.uOrbitPeriodMinutes = obj1.orbit_params.period_min;
-					currentPayload.uOrbitMeanMotion = obj1.orbit_params.mean_motion;
-					currentPayload.uOrbitPeriapsisKM = obj1.orbit_params.periapsis_km;
-					currentPayload.uOrbitApoapsisKM = obj1.orbit_params.apoapsis_km;
-					currentPayload.uOrbitLifespanYR = obj1.orbit_params.lifespan_years;
+					currentPayload.uOrbitPeriodMinutes = _.round(obj1.orbit_params.period_min, 2) || null;
+					currentPayload.uOrbitMeanMotion = _.round(obj1.orbit_params.mean_motion, 2) || null;
+					currentPayload.uOrbitPeriapsisKM = _.round(obj1.orbit_params.periapsis_km, 2) || null;
+					currentPayload.uOrbitApoapsisKM = _.round(obj1.orbit_params.apoapsis_km, 2) || null;
+					currentPayload.uOrbitLifespanYR = _.round(obj1.orbit_params.lifespan_years, 2) || null;
 					currentPayload.uIsSuccess = obj0.launch_success;
-
 
 					payloadData.push(currentPayload);
 				});
