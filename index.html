@@ -202,10 +202,10 @@
 					<th>Orbit</th>
 					<th class="text-right">Mass</th>
 					<th class="text-right">Deploy</th>
-					<th class="text-right">Period</th>
-					<th class="text-right">Mean Motion</th>
 					<th class="text-right">Pariapsis</th>
 					<th class="text-right">Apoapsis</th>
+					<th class="text-right">Period</th>
+					<th class="text-right">Mean Motion</th>
 					<th class="text-right">Lifespan</th>
 					<th class="text-center">Mission Success</th>
 				</tr>
@@ -220,10 +220,10 @@
 				<td>{{ obj.uOrbit }}</td>
 				<td class="text-right">{{ obj.uPayloadMass }}</td>
 				<td class="text-right">{{ obj.uDeploy }}</td>
-				<td class="text-right">{{ obj.uOrbitPeriodMinutes }}</td>
-				<td class="text-right">{{ obj.uOrbitMeanMotion }}</td>
 				<td class="text-right">{{ obj.uOrbitPeriapsisKM }}</td>
 				<td class="text-right">{{ obj.uOrbitApoapsisKM }}</td>
+				<td class="text-right">{{ obj.uOrbitPeriodMinutes }}</td>
+				<td class="text-right">{{ obj.uOrbitMeanMotion }}</td>
 				<td class="text-right">{{ obj.uOrbitLifespanYR }}</td>
 				<td class="text-center">
 					<span class="badge {{ obj.uIsSuccess ? 'badge-success' : 'badge-danger' }}">
@@ -386,10 +386,10 @@
 								null;
 							break;
 					}
-					currentPayload.uOrbitPeriodMinutes = _.round(obj1.orbit_params.period_min, 2) || null;
-					currentPayload.uOrbitMeanMotion = _.round(obj1.orbit_params.mean_motion, 2) || null;
 					currentPayload.uOrbitPeriapsisKM = _.round(obj1.orbit_params.periapsis_km, 2) || null;
 					currentPayload.uOrbitApoapsisKM = _.round(obj1.orbit_params.apoapsis_km, 2) || null;
+					currentPayload.uOrbitPeriodMinutes = _.round(obj1.orbit_params.period_min, 2) || null;
+					currentPayload.uOrbitMeanMotion = _.round(obj1.orbit_params.mean_motion, 2) || null;
 					currentPayload.uOrbitLifespanYR = _.round(obj1.orbit_params.lifespan_years, 2) || null;
 					currentPayload.uIsSuccess = obj0.launch_success;
 
@@ -427,9 +427,9 @@
 			currentSlide.slideTemplate = getSlideTemplate(currentIndex++);
 			Bundle.slideList.push(currentSlide);
 
-			// Dataset: Launches
+			// Dataset: Missions
 			currentSlide = _.cloneDeep(slideBundle);
-			currentSlide.slideTitle = "Dataset: Launches";
+			currentSlide.slideTitle = "Dataset: Missions";
 			currentSlide.slideTemplate = getSlideTemplate(currentIndex++);
 			currentSlide.slideData = Bundle.dataLaunch;
 			Bundle.slideList.push(currentSlide);
